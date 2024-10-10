@@ -1,0 +1,34 @@
+package com.example.gestox.entity;
+
+import jakarta.persistence.Entity;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Data;
+import lombok.NoArgsConstructor;
+import jakarta.persistence.*;
+
+import java.util.Date;
+
+@Data
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
+@Entity
+public class Order {
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long idOrder;
+
+    @ManyToOne
+    @JoinColumn(name = "idClient")
+    private Client client;
+
+    @ManyToOne
+    @JoinColumn(name = "idProduct")
+    private Product product;
+
+    private Date date;
+    private Integer quantity;
+
+    // Getters and Setters
+}

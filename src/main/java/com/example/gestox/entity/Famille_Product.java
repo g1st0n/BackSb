@@ -11,14 +11,14 @@ import java.util.List;
 
 @Builder
 @Entity
-public class Famille_Produit {
+public class Famille_Product {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
     private String designation;
 
-    @OneToMany(mappedBy = "categorie", cascade = CascadeType.ALL)
-    private List<Produit> produits;
+    //@OneToMany(mappedBy = "categorie", cascade = CascadeType.ALL)
+    //private List<Product> products;
 
 }

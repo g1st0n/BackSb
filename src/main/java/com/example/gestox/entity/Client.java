@@ -14,13 +14,21 @@ import java.util.List;
 @Builder
 @Entity
 public class Client {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private Long id;
-    private String ref ;
-    private String  nom ;
-    private String adresse  ;
-    
-    
+    private Long idClient;
+
+    private String fullName;
+    private String clientType;
+    private String email;
+    private String address;
+
+    @OneToMany(mappedBy = "client")
+    private List<Order> orders;
+
+    @ManyToOne
+    @JoinColumn(name = "user_id")
+    private User user;
 
 }

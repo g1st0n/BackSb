@@ -1,8 +1,7 @@
 package com.example.gestox.service.service_famille;
 
 import com.example.gestox.dao.FamilleRepository;
-import com.example.gestox.entity.Famille_Produit;
-import com.example.gestox.entity.Produit;
+import com.example.gestox.entity.Famille_Product;
 import lombok.AllArgsConstructor;
 import org.springframework.stereotype.Service;
 
@@ -15,15 +14,15 @@ public class Service_Categorie implements IService_Categorie{
     private FamilleRepository familleRepository ;
 
     @Override
-    public Famille_Produit getCat(Long id) {
+    public Famille_Product getCat(Long id) {
         System.out.println("Fetching Famille_Produit with ID: " + id);
-        Famille_Produit cat = familleRepository.findById(id).orElse(null);
+        Famille_Product cat = familleRepository.findById(id).orElse(null);
         System.out.println("Retrieved Famille_Produit: " + cat);
         return cat;
     }
 
     @Override
-    public Famille_Produit saveCat(Famille_Produit f) {
+    public Famille_Product saveCat(Famille_Product f) {
         if (f.getDesignation() == null || f.getDesignation().isEmpty()) {
             throw new IllegalArgumentException("Product ref cannot be empty");
         }
@@ -31,13 +30,13 @@ public class Service_Categorie implements IService_Categorie{
     }
 
     @Override
-    public List<Famille_Produit> getAllCat() {
+    public List<Famille_Product> getAllCat() {
         return familleRepository.findAll();
     }
 
     @Override
     public void deleteCat(Long id) {
-        Optional<Famille_Produit> cat = familleRepository.findById(id);
+        Optional<Famille_Product> cat = familleRepository.findById(id);
 
         cat.ifPresent(f -> {
             familleRepository.delete(f);
@@ -45,7 +44,7 @@ public class Service_Categorie implements IService_Categorie{
     }
 
     @Override
-    public Famille_Produit editCat(Famille_Produit f) {
+    public Famille_Product editCat(Famille_Product f) {
         if (f.getId() == null) {
             throw new IllegalArgumentException("categorie ID cannot be null");
         }
