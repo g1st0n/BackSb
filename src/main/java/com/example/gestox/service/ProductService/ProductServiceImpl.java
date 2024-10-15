@@ -8,12 +8,27 @@ import com.example.gestox.dto.ProductRequest;
 import com.example.gestox.dto.ProductResponse;
 import com.example.gestox.entity.FileStorage;
 import com.example.gestox.entity.Product;
+import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.io.image.ImageDataFactory;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Cell;
+import com.itextpdf.layout.element.Image;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.property.TextAlignment;
+import com.itextpdf.layout.property.UnitValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageImpl;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.ResponseEntity;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.time.LocalDateTime;
 import java.util.Base64;
@@ -50,24 +65,24 @@ public class ProductServiceImpl implements ProductService {
         product.setWeight(productRequest.getWeight());
         //product.setRawMaterial(rawMaterialRepository.findById(productRequest.getRawMaterial()).get());
         //product.setSubCategory(subCategoryRepository.findById(productRequest.getSubCategory()).get());
-//        FileStorage logo = null;
-//        if(productRequest.getLogo() !=null){
-//            if(fileStorageRepository.existsByFileNameAndFileType(productRequest.getLogo().getOriginalFilename(),
-//                    productRequest.getLogo().getContentType())){
-//                logo = fileStorageRepository.findByFileNameAndFileType(productRequest.getLogo().getOriginalFilename(),
-//                        productRequest.getLogo().getContentType());
-//                product.setLogo(logo);
-//            } else {
-//                logo = new FileStorage();
-//                logo.setFileName(productRequest.getLogo().getOriginalFilename());
-//                logo.setFileType(productRequest.getLogo().getContentType());
-//                logo.setData(productRequest.getLogo().getBytes());
-//                logo.setCreationDate(LocalDateTime.now());
-//                fileStorageRepository.save(logo);
-//                product.setLogo(logo);
-//            }
-//            product.setLogo(logo);
-//        }
+        FileStorage logo = null;
+        if(productRequest.getLogo() !=null){
+            if(fileStorageRepository.existsByFileNameAndFileType(productRequest.getLogo().getOriginalFilename(),
+                    productRequest.getLogo().getContentType())){
+                logo = fileStorageRepository.findByFileNameAndFileType(productRequest.getLogo().getOriginalFilename(),
+                        productRequest.getLogo().getContentType());
+                product.setLogo(logo);
+            } else {
+                logo = new FileStorage();
+                logo.setFileName(productRequest.getLogo().getOriginalFilename());
+                logo.setFileType(productRequest.getLogo().getContentType());
+                logo.setData(productRequest.getLogo().getBytes());
+                logo.setCreationDate(LocalDateTime.now());
+                fileStorageRepository.save(logo);
+                product.setLogo(logo);
+            }
+            product.setLogo(logo);
+        }
         productRepository.save(product);
         ProductResponse response = new ProductResponse();
         response.setId(product.getIdProduct());
@@ -76,7 +91,7 @@ public class ProductServiceImpl implements ProductService {
     }
 
     @Override
-    public ProductResponse updateProduct(ProductRequest productRequest) {
+    public ProductResponse updateProduct(ProductRequest productRequest) throws IOException {
         Optional<Product> existingProduct = productRepository.findById(productRequest.getId());
         if (existingProduct.isPresent()) {
             Product updatedProduct = existingProduct.get();
@@ -89,11 +104,46 @@ public class ProductServiceImpl implements ProductService {
             updatedProduct.setQuantity(productRequest.getQuantity());
             updatedProduct.setReference(productRequest.getReference());
             updatedProduct.setWeight(productRequest.getWeight());
-            updatedProduct.setRawMaterial(rawMaterialRepository.findById(productRequest.getRawMaterial()).get());
-            updatedProduct.setSubCategory(subCategoryRepository.findById(productRequest.getSubCategory()).get());
+            //updatedProduct.setRawMaterial(rawMaterialRepository.findById(productRequest.getRawMaterial()).get());
+            //updatedProduct.setSubCategory(subCategoryRepository.findById(productRequest.getSubCategory()).get());
+            FileStorage logo = null;
+            if(productRequest.getLogo() !=null){
+                if(fileStorageRepository.existsByFileNameAndFileType(productRequest.getLogo().getOriginalFilename(),
+                        productRequest.getLogo().getContentType())){
+                    logo = fileStorageRepository.findByFileNameAndFileType(productRequest.getLogo().getOriginalFilename(),
+                            productRequest.getLogo().getContentType());
+                    updatedProduct.setLogo(logo);
+                } else {
+                    logo = new FileStorage();
+                    logo.setFileName(productRequest.getLogo().getOriginalFilename());
+                    logo.setFileType(productRequest.getLogo().getContentType());
+                    logo.setData(productRequest.getLogo().getBytes());
+                    logo.setCreationDate(LocalDateTime.now());
+                    fileStorageRepository.save(logo);
+                    updatedProduct.setLogo(logo);
+                }
+                updatedProduct.setLogo(logo);
+            }
             productRepository.save(updatedProduct);
             ProductResponse response = new ProductResponse();
             response.setId(updatedProduct.getIdProduct());
+            response.setColor(updatedProduct.getColor());
+            response.setDesignation(updatedProduct.getDesignation());
+            response.setDimension(updatedProduct.getDimension());
+            response.setPrice(updatedProduct.getPrice());
+            response.setProductionCost(updatedProduct.getProductionCost());
+            response.setProductionDuration(updatedProduct.getProductionDuration());
+            response.setQuantity(updatedProduct.getQuantity());
+            response.setReference(updatedProduct.getReference());
+            response.setWeight(updatedProduct.getWeight());
+            response.setRawMaterial(updatedProduct.getRawMaterial().getName());
+            response.setSubCategory(updatedProduct.getSubCategory().getName());
+            if (updatedProduct.getLogo() != null) {
+                String logoBase64 = Base64.getEncoder().encodeToString(updatedProduct.getLogo().getData());
+                response.setLogo(logoBase64);
+                response.setLogoName(updatedProduct.getLogo().getFileName());
+                response.setLogoType(updatedProduct.getLogo().getFileType());
+            }
             return response ;
         }
         return null;
@@ -122,6 +172,12 @@ public class ProductServiceImpl implements ProductService {
             response.setWeight(product.getWeight());
             response.setRawMaterial(product.getRawMaterial().getName());
             response.setSubCategory(product.getSubCategory().getName());
+            if (product.getLogo() != null) {
+                String logoBase64 = Base64.getEncoder().encodeToString(product.getLogo().getData());
+                response.setLogo(logoBase64);
+                response.setLogoName(product.getLogo().getFileName());
+                response.setLogoType(product.getLogo().getFileType());
+            }
             return response;
         } else {
             return null;
@@ -189,4 +245,95 @@ public class ProductServiceImpl implements ProductService {
         // Return a new PageImpl<ProductResponse> to preserve pagination info
         return new PageImpl<>(productResponseDTOs, pageable, products.getTotalElements());
     }
+
+    @Override
+    public byte[] generatePdf(Long productId) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        PdfWriter writer = new PdfWriter(byteArrayOutputStream);
+        PdfDocument pdfDoc = new PdfDocument(writer);
+        Document document = new Document(pdfDoc);
+
+        // Set document font, size, and styling
+        PdfFont font = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+        document.setFont(font);
+        document.setFontSize(12);
+
+        Optional<Product> existingProduct = productRepository.findById(productId);
+        if (existingProduct.isPresent()) {
+            Product product = existingProduct.get();
+
+            // Add title in French
+            Paragraph title = new Paragraph("Détails du Produit")
+                    .setFontSize(18)
+                    .setBold()
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(20);
+            document.add(title);
+
+            // Product info table with null checks and French labels
+            Table productInfoTable = new Table(2);
+            productInfoTable.setWidth(UnitValue.createPercentValue(100));
+
+            productInfoTable.addCell(new Cell().add(new Paragraph("Référence :")));
+            productInfoTable.addCell(new Cell().add(new Paragraph(product.getReference() != null ? product.getReference() : "Non renseigné")));
+
+            productInfoTable.addCell(new Cell().add(new Paragraph("Désignation :")));
+            productInfoTable.addCell(new Cell().add(new Paragraph(product.getDesignation() != null ? product.getDesignation() : "Non renseigné")));
+
+            productInfoTable.addCell(new Cell().add(new Paragraph("Catégorie :")));
+            productInfoTable.addCell(new Cell().add(new Paragraph(product.getSubCategory() != null ? product.getSubCategory().getName() : "Non disponible")));
+
+            productInfoTable.addCell(new Cell().add(new Paragraph("Couleur :")));
+            productInfoTable.addCell(new Cell().add(new Paragraph(product.getColor() != null ? product.getColor() : "Non renseigné")));
+
+            productInfoTable.addCell(new Cell().add(new Paragraph("Poids (g) :")));
+            productInfoTable.addCell(new Cell().add(new Paragraph(product.getWeight() != null ? String.valueOf(product.getWeight()) : "Non renseigné")));
+
+            productInfoTable.addCell(new Cell().add(new Paragraph("Dimensions (cm) :")));
+            productInfoTable.addCell(new Cell().add(new Paragraph(product.getDimension() != null ? String.valueOf(product.getDimension()) : "Non renseigné")));
+
+            productInfoTable.addCell(new Cell().add(new Paragraph("Durée de fabrication (heures) :")));
+            productInfoTable.addCell(new Cell().add(new Paragraph(product.getProductionDuration() != null ? String.valueOf(product.getProductionDuration()) : "Non renseigné")));
+
+            productInfoTable.addCell(new Cell().add(new Paragraph("Prix (TND) :")));
+            productInfoTable.addCell(new Cell().add(new Paragraph(product.getPrice() != null ? String.valueOf(product.getPrice()) : "Non renseigné")));
+
+            productInfoTable.addCell(new Cell().add(new Paragraph("Quantité en stock :")));
+            productInfoTable.addCell(new Cell().add(new Paragraph(product.getQuantity() != null ? String.valueOf(product.getQuantity()) : "Non renseigné")));
+
+            productInfoTable.addCell(new Cell().add(new Paragraph("Coût de production (TND) :")));
+            productInfoTable.addCell(new Cell().add(new Paragraph(product.getProductionCost() != null ? String.valueOf(product.getProductionCost()) : "Non renseigné")));
+
+            productInfoTable.addCell(new Cell().add(new Paragraph("Matière première :")));
+            productInfoTable.addCell(new Cell().add(new Paragraph(product.getRawMaterial() != null ? product.getRawMaterial().getName() : "Non disponible")));
+
+            document.add(productInfoTable);
+
+            // Add logo image if available
+            if (product.getLogo() != null && product.getLogo().getData() != null) {
+                Image logo = new Image(ImageDataFactory.create(product.getLogo().getData()));
+                logo.setWidth(100); // Adjust size
+                logo.setHeight(100);
+                logo.setMarginTop(20);
+                document.add(logo);
+            }
+
+            // Add a final note in French
+            Paragraph finalNote = new Paragraph("Ce document contient les informations détaillées du produit : " + (product.getReference() != null ? product.getReference() : "Non renseigné"))
+                    .setFontSize(10)
+                    .setItalic()
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginTop(20);
+            document.add(finalNote);
+        } else {
+            document.add(new Paragraph("Produit non trouvé").setFontSize(12).setBold());
+        }
+
+        document.close();
+
+        // Convert ByteArrayOutputStream to byte array
+        return byteArrayOutputStream.toByteArray();
+    }
+
+
 }

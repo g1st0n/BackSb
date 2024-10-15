@@ -32,7 +32,7 @@ public class Product {
     private SubCategory subCategory;
 
     @OneToMany(mappedBy = "product")
-    private List<Order> orders;
+    private List<CustomerOrder> orders;
 
     @OneToMany(mappedBy = "product")
     private List<ProductionPlan> productionPlans;

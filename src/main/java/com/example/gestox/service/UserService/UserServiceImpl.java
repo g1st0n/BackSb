@@ -51,12 +51,12 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
     private EmailService emailService;
 
     @Override
-    public UserDetails loadUserByUsername(String address) throws UsernameNotFoundException {
-        Optional<User> optionalUser = userRepository.findByEmailAddress(address);
+    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
+        Optional<User> optionalUser = userRepository.findByFirstName(username);
         if (!optionalUser.isPresent()) {
-            optionalUser = userRepository.findByEmailAddress(address);
+            optionalUser = userRepository.findByEmailAddress(username);
             if (!optionalUser.isPresent())
-                throw new UsernameNotFoundException("User not found with email : " + address);
+                throw new UsernameNotFoundException("User not found with username or email : " + username);
         }
         User user = optionalUser.orElse(null);
         return new org.springframework.security.core.userdetails.User(user.getFirstName(), user.getPassword(),
@@ -92,11 +92,15 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
             throw new RuntimeException("email already in use");
         }
         User user = new User();
-        user.setFirstName(registrationDto.getUsername());
         user.setAddress(registrationDto.getEmail());
+        user.setEnabled(true);
+        user.setFirstName(registrationDto.getFirstName());
+        user.setLastAccess(null);
+        user.setLastName(registrationDto.getLastName());
         user.setPassword(passwordEncoder.encode(registrationDto.getPassword()));
+        user.setPhoneNumber(registrationDto.getPhoneNumber());
         user.setRole("ROLE_ADMIN");
-        user.setEnabled(false);
+        user.setStatus(registrationDto.getStatus());
         FileStorage profileImg = new FileStorage();
         profileImg.setFileName(registrationDto.getProfileImage().getOriginalFilename());
         profileImg.setFileType(registrationDto.getProfileImage().getContentType());
@@ -105,40 +109,6 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
         fileStorageRepository.save(profileImg);
         user.setProfileImage(profileImg);
         User savedUser = userRepository.save(user);
-
-        String token = UUID.randomUUID().toString();
-        ConfirmationToken confirmationToken = new ConfirmationToken(
-                token,
-                LocalDateTime.now(),
-                LocalDateTime.now().plusMinutes(15),
-                null,
-                savedUser
-        );
-
-        confirmationTokenRepository.save(confirmationToken);
-
-        try {
-            emailService.sendEmail("ghassenbayachatti@gmail.com",
-                    registrationDto.getEmail(),
-                    "Email Confirmation",
-                    "Hello,\n\n Please verify your registration using this token : " + token + "\n\n Kind Regards",
-                    null
-            );
-        } catch (IOException e) {
-            logger.error(e.getMessage());
-            confirmationTokenRepository.delete(confirmationToken);
-            userRepository.delete(savedUser);
-        } catch (javax.mail.MessagingException e) {
-            confirmationTokenRepository.delete(confirmationToken);
-            userRepository.delete(savedUser);
-            logger.error(e.getMessage());
-            throw new RuntimeException(e);
-        } catch (Exception e) {
-            confirmationTokenRepository.delete(confirmationToken);
-            userRepository.delete(savedUser);
-            logger.error(e.getMessage());
-            throw new RuntimeException(e);
-        }
         return savedUser;
     }
 

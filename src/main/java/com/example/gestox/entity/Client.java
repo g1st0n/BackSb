@@ -25,7 +25,7 @@ public class Client {
     private String address;
 
     @OneToMany(mappedBy = "client")
-    private List<Order> orders;
+    private List<CustomerOrder> orders;
 
     @ManyToOne
     @JoinColumn(name = "user_id")

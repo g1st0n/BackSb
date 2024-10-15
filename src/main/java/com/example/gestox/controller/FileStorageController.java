@@ -27,7 +27,7 @@ public class FileStorageController {
     // Endpoint to upload a file
     @PostMapping("/upload")
     public ResponseEntity<FileStorageResponse> uploadFile(@RequestParam("file") MultipartFile file) throws IOException {
-        // Logic for saving the file (e.g., store it in the database or on disk)
+        // Logic for saving the file
         FileStorage savedFile = fileStorageService.saveFile(file);
 
         // Create response containing file metadata (like ID, file name, etc.)

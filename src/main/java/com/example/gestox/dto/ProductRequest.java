@@ -1,6 +1,6 @@
 package com.example.gestox.dto;
 
-import com.example.gestox.entity.Order;
+import com.example.gestox.entity.CustomerOrder;
 import com.example.gestox.entity.ProductionPlan;
 import com.example.gestox.entity.RawMaterial;
 import com.example.gestox.entity.SubCategory;

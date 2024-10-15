@@ -11,7 +11,11 @@ import org.springframework.web.multipart.MultipartFile;
 @ToString
 public class UserRegistrationDto {
 
-    private String username;
+    private String firstName;
+    private String lastName;
+
+    private Long phoneNumber;
+    private String status;
 
     private String email;
 
