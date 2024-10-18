@@ -20,6 +20,7 @@ public class SubCategory {
     private String name;
     private String reference;
 
+
     @OneToMany(mappedBy = "subCategory")
     private List<Product> products;
 

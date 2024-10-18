@@ -11,6 +11,8 @@ public class ClientResponseDTO {
     private String clientType;
     private String email;
     private String address;
+    private String telephone ;
+
     private Long userId;
     private String userFullName;  // Assuming you want to return some info about the user
 }

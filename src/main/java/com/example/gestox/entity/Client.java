@@ -23,6 +23,7 @@ public class Client {
     private String clientType;
     private String email;
     private String address;
+    private String telephone ;
 
     @OneToMany(mappedBy = "client")
     private List<CustomerOrder> orders;

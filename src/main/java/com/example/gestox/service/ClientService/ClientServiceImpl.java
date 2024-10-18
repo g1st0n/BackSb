@@ -4,7 +4,9 @@ import com.example.gestox.dao.ClientRepository;
 import com.example.gestox.dao.UserRepository;
 import com.example.gestox.dto.ClientRequestDTO;
 import com.example.gestox.dto.ClientResponseDTO;
+import com.example.gestox.dto.RawMaterialRequestDTO;
 import com.example.gestox.entity.Client;
+import com.example.gestox.entity.RawMaterial;
 import com.example.gestox.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,21 +26,20 @@ public class ClientServiceImpl implements ClientService {
 
     // Create or Update Client
     public ClientResponseDTO saveClient(ClientRequestDTO request) {
-        Client client = new Client();
-        client.setFullName(request.getFullName());
-        client.setClientType(request.getClientType());
-        client.setEmail(request.getEmail());
-        client.setAddress(request.getAddress());
 
-        // Set the User associated with the client
-        Optional<User> userOptional = userRepository.findById(request.getUserId());
-        if (userOptional.isPresent()) {
-            client.setUser(userOptional.get());
-        }
-
+        Client client = mapToEntity(request);
         Client savedClient = clientRepository.save(client);
-
         return mapToResponseDTO(savedClient);
+    }
+    private Client mapToEntity(ClientRequestDTO clientRequestDTO) {
+
+        return Client.builder()
+                .fullName(clientRequestDTO.getFullName())
+                .clientType(clientRequestDTO.getClientType())
+                .email(clientRequestDTO.getEmail())
+                .address(clientRequestDTO.getAddress())
+                .telephone(clientRequestDTO.getTelephone())
+                .build();
     }
 
     @Override
@@ -51,6 +52,9 @@ public class ClientServiceImpl implements ClientService {
             client.setClientType(clientRequestDTO.getClientType());
             client.setEmail(clientRequestDTO.getEmail());
             client.setAddress(clientRequestDTO.getAddress());
+            client.setTelephone(clientRequestDTO.getTelephone());
+
+
 
             // If user ID is provided, update the associated user
             Optional<User> userOptional = userRepository.findById(clientRequestDTO.getUserId());
@@ -62,6 +66,8 @@ public class ClientServiceImpl implements ClientService {
             response.setClientType(client.getClientType());
             response.setEmail(client.getEmail());
             response.setFullName(client.getFullName());
+            client.setTelephone(client.getTelephone());
+
             return response ;
         } else {
             throw new RuntimeException("Client not found with id " + idClient);
@@ -92,6 +98,7 @@ public class ClientServiceImpl implements ClientService {
         responseDTO.setClientType(client.getClientType());
         responseDTO.setEmail(client.getEmail());
         responseDTO.setAddress(client.getAddress());
+        responseDTO.setTelephone(client.getTelephone());
 
         // Set user info
         if (client.getUser() != null) {

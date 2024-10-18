@@ -19,7 +19,7 @@ public class RawMaterialController {
     }
 
     @PostMapping("/add")
-    public ResponseEntity<RawMaterialResponseDTO> createRawMaterial(@RequestBody RawMaterialRequestDTO rawMaterialRequestDTO) {
+    public ResponseEntity<RawMaterialResponseDTO> createRawMaterial(@ModelAttribute RawMaterialRequestDTO rawMaterialRequestDTO) {
         RawMaterialResponseDTO rawMaterialResponse = rawMaterialService.createRawMaterial(rawMaterialRequestDTO);
         return ResponseEntity.ok(rawMaterialResponse);
     }

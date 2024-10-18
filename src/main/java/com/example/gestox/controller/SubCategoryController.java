@@ -17,7 +17,7 @@ public class SubCategoryController {
     private SubCategoryService subCategoryService;
 
     // Create a new SubCategory
-    @PostMapping
+    @PostMapping("/add")
     public ResponseEntity<SubCategoryResponseDTO> createSubCategory(@RequestBody SubCategoryRequestDTO subCategoryRequestDTO) {
         SubCategoryResponseDTO createdSubCategory = subCategoryService.createSubCategory(subCategoryRequestDTO);
         return ResponseEntity.ok(createdSubCategory);
