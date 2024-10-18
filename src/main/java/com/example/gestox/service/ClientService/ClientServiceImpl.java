@@ -4,13 +4,19 @@ import com.example.gestox.dao.ClientRepository;
 import com.example.gestox.dao.UserRepository;
 import com.example.gestox.dto.ClientRequestDTO;
 import com.example.gestox.dto.ClientResponseDTO;
+import com.example.gestox.dto.ProductResponse;
 import com.example.gestox.dto.RawMaterialRequestDTO;
 import com.example.gestox.entity.Client;
+import com.example.gestox.entity.Product;
 import com.example.gestox.entity.RawMaterial;
 import com.example.gestox.entity.User;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import java.util.Base64;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -43,8 +49,8 @@ public class ClientServiceImpl implements ClientService {
     }
 
     @Override
-    public ClientResponseDTO updateClient(Long idClient, ClientRequestDTO clientRequestDTO) {
-        Optional<Client> clientOptional = clientRepository.findById(idClient);
+    public ClientResponseDTO updateClient(ClientRequestDTO clientRequestDTO) {
+        Optional<Client> clientOptional = clientRepository.findById(clientRequestDTO.getClientId());
 
         if (clientOptional.isPresent()) {
             Client client = clientOptional.get();
@@ -54,34 +60,38 @@ public class ClientServiceImpl implements ClientService {
             client.setAddress(clientRequestDTO.getAddress());
             client.setTelephone(clientRequestDTO.getTelephone());
 
-
-
             // If user ID is provided, update the associated user
-            Optional<User> userOptional = userRepository.findById(clientRequestDTO.getUserId());
-            userOptional.ifPresent(client::setUser);
+            //Optional<User> userOptional = userRepository.findById(clientRequestDTO.getUserId());
+            //userOptional.ifPresent(client::setUser);
 
-            clientRepository.save(client);  // Save the updated client
+            clientRepository.save(client);
+
             ClientResponseDTO response = new ClientResponseDTO() ;
             response.setAddress(client.getAddress());
             response.setClientType(client.getClientType());
             response.setEmail(client.getEmail());
             response.setFullName(client.getFullName());
-            client.setTelephone(client.getTelephone());
+
 
             return response ;
         } else {
-            throw new RuntimeException("Client not found with id " + idClient);
+            throw new RuntimeException("Client not found with id " + clientRequestDTO.getUserId());
         }
     }
 
     @Override
     public void deleteClient(Long idClient) {
-
+        clientRepository.delete(clientRepository.findById(idClient).get());
     }
 
     @Override
-    public Client getClientById(Long idClient) {
-        return null;
+    public ClientResponseDTO getClientById(Long idClient) {
+        Optional<Client> clientOptional = clientRepository.findById(idClient);
+        Client client = null ;
+        if (clientOptional.isPresent()) {
+            client = clientOptional.get();
+        }
+        return mapToResponseDTO(client);
     }
 
     // Get All Clients
@@ -107,6 +117,30 @@ public class ClientServiceImpl implements ClientService {
         }
 
         return responseDTO;
+    }
+
+    @Override
+    public Page<ClientResponseDTO> getAllClients(Pageable pageable) {
+        Page<Client> clients = clientRepository.findAll(pageable);
+        List<ClientResponseDTO> productResponseDTOs = clients.stream().map(client -> {
+            ClientResponseDTO responseDTO = new ClientResponseDTO();
+            responseDTO.setIdClient(client.getIdClient());
+            responseDTO.setFullName(client.getFullName());
+            responseDTO.setClientType(client.getClientType());
+            responseDTO.setEmail(client.getEmail());
+            responseDTO.setAddress(client.getAddress());
+            responseDTO.setTelephone(client.getTelephone());
+
+            // Set user info
+            if (client.getUser() != null) {
+                responseDTO.setUserId(client.getUser().getId());
+                responseDTO.setUserFullName(client.getUser().getFirstName() + " " + client.getUser().getLastName());
+            }
+            return responseDTO;
+        }).collect(Collectors.toList());
+
+        // Return a new PageImpl<ProductResponse> to preserve pagination info
+        return new PageImpl<>(productResponseDTOs, pageable, clients.getTotalElements());
     }
 }
 

@@ -6,6 +6,7 @@ import lombok.Setter;
 @Getter
 @Setter
 public class ClientResponseDTO {
+
     private Long idClient;
     private String fullName;
     private String clientType;
