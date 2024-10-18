@@ -12,5 +12,5 @@ public class ClientRequestDTO {
     private String email;
     private String address;
     private String telephone ;
-    private Long userId;  // Assuming you want to pass the User ID
+    private Long userId;
 }

@@ -7,6 +7,8 @@ import com.example.gestox.service.ClientService.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -47,6 +49,25 @@ public class ClientController {
     @DeleteMapping("/{id}")
     public void deleteClient(@PathVariable Long id) {
         clientService.deleteClient(id);
+    }
+
+    @GetMapping("/generate/{clientId}")
+    public ResponseEntity<byte[]> generatePdf(@PathVariable Long clientId) {
+        try {
+            byte[] pdfBytes  =clientService.generatePdf(clientId);
+
+            // Return the generated PDF as a response
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=client_" + clientId + ".pdf");
+            headers.setContentType(MediaType.APPLICATION_PDF);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfBytes);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 }
 

@@ -7,6 +7,7 @@ import com.example.gestox.entity.Client;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface ClientService {
@@ -16,5 +17,7 @@ public interface ClientService {
     ClientResponseDTO getClientById(Long idClient);
     List<ClientResponseDTO> getAllClients();
     public Page<ClientResponseDTO> getAllClients(Pageable pageable);
+
+    public byte[] generatePdf(Long clientId) throws IOException;
 }
 
