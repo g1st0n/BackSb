@@ -12,12 +12,13 @@ import java.util.Date;
 @Builder
 public class ProductionPlanResponseDTO {
     private Long idPlanning;
-    private Date date;
+    private String date;
     private Integer quantity;
-    private LocalTime duration;
+    private String duration;
     private Long productId;  // Reference to Product entity
     private Long workshopId; // Reference to Workshop entity
     private Integer workforce;
     private String comment;
+    private String status;
 }
 

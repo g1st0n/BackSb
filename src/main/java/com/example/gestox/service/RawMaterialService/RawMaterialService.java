@@ -4,6 +4,7 @@ package com.example.gestox.service.RawMaterialService;
 import com.example.gestox.dto.RawMaterialRequestDTO;
 import com.example.gestox.dto.RawMaterialResponseDTO;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface RawMaterialService {
@@ -12,6 +13,8 @@ public interface RawMaterialService {
     void deleteRawMaterial(Long idMaterial);
     RawMaterialResponseDTO getRawMaterialById(Long idMaterial);
     List<RawMaterialResponseDTO> getAllRawMaterials();
+
+    public byte[] generatePdf(Long id) throws IOException;
 
 }
 

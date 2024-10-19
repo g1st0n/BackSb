@@ -4,6 +4,7 @@ import com.example.gestox.dto.SubCategoryRequestDTO;
 import com.example.gestox.dto.SubCategoryResponseDTO;
 import com.example.gestox.entity.SubCategory;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface SubCategoryService {
@@ -12,5 +13,7 @@ public interface SubCategoryService {
     void deleteSubCategory(Long idSubCategory);
     SubCategoryResponseDTO getSubCategoryById(Long idSubCategory);
     List<SubCategoryResponseDTO> getAllSubCategories();
+
+    public byte[] generatePdf(Long id) throws IOException;
 }
 

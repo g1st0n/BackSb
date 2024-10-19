@@ -4,6 +4,7 @@ import com.example.gestox.dto.WorkshopRequestDTO;
 import com.example.gestox.dto.WorkshopResponseDTO;
 import com.example.gestox.entity.Workshop;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface WorkshopService {
@@ -12,4 +13,6 @@ public interface WorkshopService {
     void deleteWorkshop(Long idWorkshop);
     WorkshopResponseDTO getWorkshopById(Long idWorkshop);
     List<WorkshopResponseDTO> getAllWorkshops();
+
+    public byte[] generatePdf(Long id) throws IOException;
 }

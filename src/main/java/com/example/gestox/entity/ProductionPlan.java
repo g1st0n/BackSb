@@ -3,6 +3,7 @@ package com.example.gestox.entity;
 import lombok.*;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.util.Date;
 
@@ -17,7 +18,7 @@ public class ProductionPlan {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long idPlanning;
 
-    private Date date;
+    private LocalDateTime date;
     private Integer quantity;
     private LocalTime duration;
 

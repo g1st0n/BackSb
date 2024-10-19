@@ -4,7 +4,10 @@ import com.example.gestox.dto.SubCategoryRequestDTO;
 import com.example.gestox.dto.SubCategoryResponseDTO;
 import com.example.gestox.service.SubCategoryService.SubCategoryService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -51,5 +54,25 @@ public class SubCategoryController {
     public ResponseEntity<List<SubCategoryResponseDTO>> getAllSubCategories() {
         List<SubCategoryResponseDTO> subCategories = subCategoryService.getAllSubCategories();
         return ResponseEntity.ok(subCategories);
+    }
+
+    @GetMapping("/generate/{subCategoryId}")
+    @PreAuthorize("hasRole('PRODUCTION')")
+    public ResponseEntity<byte[]> generatePdf(@PathVariable Long subCategoryId) {
+        try {
+            byte[] pdfBytes  =subCategoryService.generatePdf(subCategoryId);
+
+            // Return the generated PDF as a response
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ORDER_" + subCategoryId + ".pdf");
+            headers.setContentType(MediaType.APPLICATION_PDF);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfBytes);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 }

@@ -10,6 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -22,12 +23,14 @@ public class ClientController {
     private ClientService clientService;
 
     @GetMapping
+    @PreAuthorize("hasRole('FINANCIER')")
     public Page<ClientResponseDTO> getClients(Pageable pageable) {
         return clientService.getAllClients(pageable);
     }
 
     // Create or update client
     @PostMapping("/add")
+    @PreAuthorize("hasRole('FINANCIER')")
     public ResponseEntity<ClientResponseDTO> createClient(@RequestBody ClientRequestDTO clientRequestDTO) {
         ClientResponseDTO clientResponse = clientService.saveClient(clientRequestDTO);
         return ResponseEntity.ok(clientResponse);
@@ -35,23 +38,27 @@ public class ClientController {
 
     // Get all clients
     @GetMapping("/showAll")
+    @PreAuthorize("hasRole('FINANCIER')")
     public ResponseEntity<List<ClientResponseDTO>> getAllClients() {
         List<ClientResponseDTO> clients = clientService.getAllClients();
         return ResponseEntity.ok(clients);
     }
 
     @PutMapping("/{id}")
+    @PreAuthorize("hasRole('FINANCIER')")
     public ResponseEntity<ClientResponseDTO> updateClient(@RequestBody ClientRequestDTO clientRequestDTO) {
         ClientResponseDTO clientResponse = clientService.updateClient(clientRequestDTO);
         return ResponseEntity.ok(clientResponse);
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('FINANCIER')")
     public void deleteClient(@PathVariable Long id) {
         clientService.deleteClient(id);
     }
 
     @GetMapping("/generate/{clientId}")
+    @PreAuthorize("hasRole('FINANCIER')")
     public ResponseEntity<byte[]> generatePdf(@PathVariable Long clientId) {
         try {
             byte[] pdfBytes  =clientService.generatePdf(clientId);

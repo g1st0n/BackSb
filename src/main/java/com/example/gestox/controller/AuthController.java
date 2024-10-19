@@ -50,7 +50,8 @@ public class AuthController {
 
         JwtResponse response = JwtResponse.builder()
                 .jwtToken(token)
-                .username(userDetails.getUsername()).build();
+                .username(userDetails.getUsername())
+                .role(userDetails.getAuthorities().toString()).build();
         return new ResponseEntity<>(response, HttpStatus.OK);
     }
 
