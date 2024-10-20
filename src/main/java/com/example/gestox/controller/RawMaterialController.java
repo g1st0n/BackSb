@@ -52,7 +52,6 @@ public class RawMaterialController {
     }
 
     @GetMapping("/generate/{rawMaterialId}")
-    @PreAuthorize("hasRole('PRODUCTION')")
     public ResponseEntity<byte[]> generatePdf(@PathVariable Long rawMaterialId) {
         try {
             byte[] pdfBytes  =rawMaterialService.generatePdf(rawMaterialId);

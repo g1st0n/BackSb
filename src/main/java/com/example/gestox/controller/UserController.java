@@ -50,7 +50,6 @@ public class UserController {
     }
 
     @GetMapping("/generate/{userId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<byte[]> generatePdf(@PathVariable Long userId) {
         try {
             byte[] pdfBytes  =userService.generatePdf(userId);

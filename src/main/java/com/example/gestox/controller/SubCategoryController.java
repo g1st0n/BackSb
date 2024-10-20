@@ -57,7 +57,6 @@ public class SubCategoryController {
     }
 
     @GetMapping("/generate/{subCategoryId}")
-    @PreAuthorize("hasRole('PRODUCTION')")
     public ResponseEntity<byte[]> generatePdf(@PathVariable Long subCategoryId) {
         try {
             byte[] pdfBytes  =subCategoryService.generatePdf(subCategoryId);

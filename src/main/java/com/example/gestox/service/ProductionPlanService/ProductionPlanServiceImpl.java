@@ -105,8 +105,11 @@ public class ProductionPlanServiceImpl implements ProductionPlanService {
     }
 
     private ProductionPlan mapToEntity(ProductionPlanRequestDTO productionPlanRequestDTO, Product product, Workshop workshop) {
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");  // Custom pattern for milliseconds
-        LocalTime time = LocalTime.parse(productionPlanRequestDTO.getDuration(), formatter);  // Convert to LocalTime
+        String durationString = "45";
+        int durationMinutes = Integer.parseInt(durationString);
+
+        LocalTime time = LocalTime.of(durationMinutes / 60, durationMinutes % 60); // Convert to LocalTime
+
         return ProductionPlan.builder()
                 .date(getDate(productionPlanRequestDTO.getDate()))
                 .quantity(productionPlanRequestDTO.getQuantity())

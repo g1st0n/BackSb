@@ -51,7 +51,6 @@ public class WorkshopController {
     }
 
     @GetMapping("/generate/{workshopId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<byte[]> generatePdf(@PathVariable Long workshopId) {
         try {
             byte[] pdfBytes  =workshopService.generatePdf(workshopId);

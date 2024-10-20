@@ -43,7 +43,7 @@ public class SecurityConfig {
                         .requestMatchers("/context-path/swagger-ui.html").permitAll()
                         .requestMatchers("/auth/sign-in").permitAll()
                         .requestMatchers("/Auth/sign-in").permitAll()
-                        //.requestMatchers("/**").permitAll()
+                        .requestMatchers("/**").permitAll()
                         .anyRequest().authenticated()
 
                 )
