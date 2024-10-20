@@ -4,7 +4,10 @@ import com.example.gestox.dto.OrderRequestDTO;
 import com.example.gestox.dto.OrderResponseDTO;
 import com.example.gestox.service.OrderService.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import javax.mail.MessagingException;
@@ -46,6 +49,26 @@ public class OrderController {
     public ResponseEntity<List<OrderResponseDTO>> getAllOrders() {
         List<OrderResponseDTO> orders = orderService.getAllOrders();
         return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("/generate/{ORDERId}")
+    @PreAuthorize("hasRole('FINANCIER')")
+    public ResponseEntity<byte[]> generatePdf(@PathVariable Long orderId) {
+        try {
+            byte[] pdfBytes  =orderService.generatePdf(orderId);
+
+            // Return the generated PDF as a response
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ORDER_" + orderId + ".pdf");
+            headers.setContentType(MediaType.APPLICATION_PDF);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfBytes);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 }
 

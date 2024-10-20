@@ -1,12 +1,12 @@
 package com.example.gestox.service.SubCategoryService;
 
-import com.example.gestox.dto.ClientResponseDTO;
 import com.example.gestox.dto.SubCategoryRequestDTO;
 import com.example.gestox.dto.SubCategoryResponseDTO;
 import com.example.gestox.entity.SubCategory;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface SubCategoryService {
@@ -17,5 +17,6 @@ public interface SubCategoryService {
     List<SubCategoryResponseDTO> getAllSubCategories();
     public Page<SubCategoryResponseDTO> getAllSubCategories(Pageable pageable);
 
+    public byte[] generatePdf(Long id) throws IOException;
 }
 

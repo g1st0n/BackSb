@@ -1,14 +1,13 @@
 package com.example.gestox.controller;
 
-import com.example.gestox.dto.ClientRequestDTO;
-import com.example.gestox.dto.ClientResponseDTO;
 import com.example.gestox.dto.WorkshopRequestDTO;
 import com.example.gestox.dto.WorkshopResponseDTO;
 import com.example.gestox.service.WorkshopService.WorkshopService;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -21,22 +20,16 @@ public class WorkshopController {
     private WorkshopService workshopService;
 
 
-    @GetMapping
-    public ResponseEntity<Page<WorkshopResponseDTO>> getAllWorkshops(Pageable pageable) {
-        Page<WorkshopResponseDTO> workshops = workshopService.getAllWorkshops(pageable);
-        return ResponseEntity.ok(workshops);
-    }
-
     @PostMapping("/add")
     public ResponseEntity<WorkshopResponseDTO> createWorkshop(@RequestBody WorkshopRequestDTO workshopRequestDTO) {
         WorkshopResponseDTO workshopResponse = workshopService.createWorkshop(workshopRequestDTO);
         return ResponseEntity.ok(workshopResponse);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<WorkshopResponseDTO> updateClient(@RequestBody WorkshopRequestDTO workshopRequestDTO) {
-        WorkshopResponseDTO workshopResponseDTO = workshopService.updateWorkshop(workshopRequestDTO);
-        return ResponseEntity.ok(workshopResponseDTO);
+    @PutMapping("/{idWorkshop}")
+    public ResponseEntity<WorkshopResponseDTO> updateWorkshop(@PathVariable Long idWorkshop, @RequestBody WorkshopRequestDTO workshopRequestDTO) {
+        WorkshopResponseDTO updatedWorkshop = workshopService.updateWorkshop(idWorkshop, workshopRequestDTO);
+        return ResponseEntity.ok(updatedWorkshop);
     }
 
     @DeleteMapping("/{idWorkshop}")
@@ -51,10 +44,30 @@ public class WorkshopController {
         return ResponseEntity.ok(workshopResponse);
     }
 
-    @GetMapping("/showAll")
+    @GetMapping
     public ResponseEntity<List<WorkshopResponseDTO>> getAllWorkshops() {
         List<WorkshopResponseDTO> workshops = workshopService.getAllWorkshops();
         return ResponseEntity.ok(workshops);
+    }
+
+    @GetMapping("/generate/{workshopId}")
+    @PreAuthorize("hasRole('ADMIN')")
+    public ResponseEntity<byte[]> generatePdf(@PathVariable Long workshopId) {
+        try {
+            byte[] pdfBytes  =workshopService.generatePdf(workshopId);
+
+            // Return the generated PDF as a response
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ORDER_" + workshopId + ".pdf");
+            headers.setContentType(MediaType.APPLICATION_PDF);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfBytes);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 }
 

@@ -5,13 +5,31 @@ import com.example.gestox.dao.ProductionPlanRepository;
 import com.example.gestox.dao.WorkshopRepository;
 import com.example.gestox.dto.ProductionPlanRequestDTO;
 import com.example.gestox.dto.ProductionPlanResponseDTO;
+import com.example.gestox.entity.CustomerOrder;
 import com.example.gestox.entity.Product;
 import com.example.gestox.entity.ProductionPlan;
 import com.example.gestox.entity.Workshop;
+import com.itextpdf.io.font.constants.StandardFonts;
+import com.itextpdf.kernel.font.PdfFont;
+import com.itextpdf.kernel.font.PdfFontFactory;
+import com.itextpdf.kernel.pdf.PdfDocument;
+import com.itextpdf.kernel.pdf.PdfWriter;
+import com.itextpdf.layout.Document;
+import com.itextpdf.layout.element.Paragraph;
+import com.itextpdf.layout.element.Table;
+import com.itextpdf.layout.property.TextAlignment;
+import com.itextpdf.layout.property.UnitValue;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.io.ByteArrayOutputStream;
+import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
+import java.util.Locale;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 @Service
@@ -50,9 +68,9 @@ public class ProductionPlanServiceImpl implements ProductionPlanService {
                 .orElseThrow(() -> new RuntimeException("Workshop not found with id: " + productionPlanRequestDTO.getWorkshopId()));
 
         // Update production plan details
-        productionPlan.setDate(productionPlanRequestDTO.getDate());
+        productionPlan.setDate(getDate(productionPlanRequestDTO.getDate()));
         productionPlan.setQuantity(productionPlanRequestDTO.getQuantity());
-        productionPlan.setDuration(productionPlanRequestDTO.getDuration());
+        //productionPlan.setDuration(productionPlanRequestDTO.getDuration());
         productionPlan.setProduct(product);
         productionPlan.setWorkshop(workshop);
         productionPlan.setWorkforce(productionPlanRequestDTO.getWorkforce());
@@ -87,10 +105,12 @@ public class ProductionPlanServiceImpl implements ProductionPlanService {
     }
 
     private ProductionPlan mapToEntity(ProductionPlanRequestDTO productionPlanRequestDTO, Product product, Workshop workshop) {
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("HH:mm:ss.SSS");  // Custom pattern for milliseconds
+        LocalTime time = LocalTime.parse(productionPlanRequestDTO.getDuration(), formatter);  // Convert to LocalTime
         return ProductionPlan.builder()
-                .date(productionPlanRequestDTO.getDate())
+                .date(getDate(productionPlanRequestDTO.getDate()))
                 .quantity(productionPlanRequestDTO.getQuantity())
-                .duration(productionPlanRequestDTO.getDuration())
+                .duration(time)
                 .product(product)
                 .workshop(workshop)
                 .workforce(productionPlanRequestDTO.getWorkforce())
@@ -101,13 +121,69 @@ public class ProductionPlanServiceImpl implements ProductionPlanService {
     private ProductionPlanResponseDTO mapToResponseDTO(ProductionPlan productionPlan) {
         return ProductionPlanResponseDTO.builder()
                 .idPlanning(productionPlan.getIdPlanning())
-                .date(productionPlan.getDate())
+                .date(productionPlan.getDate().toString())
                 .quantity(productionPlan.getQuantity())
-                .duration(productionPlan.getDuration())
+                .duration(productionPlan.getDuration().toString())
                 .productId(productionPlan.getProduct().getIdProduct())
                 .workshopId(productionPlan.getWorkshop().getIdWorkshop())
                 .workforce(productionPlan.getWorkforce())
                 .comment(productionPlan.getComment())
+                .status((LocalDateTime.now().compareTo(productionPlan.getDate().plusHours(productionPlan.getDuration().getHour()))>0? "TERMINE" : "EN_COURS"))
                 .build();
+    }
+
+    @Override
+    public byte[] generatePdf(Long id) throws IOException {
+        ByteArrayOutputStream byteArrayOutputStream = new ByteArrayOutputStream();
+        PdfWriter writer = new PdfWriter(byteArrayOutputStream);
+        PdfDocument pdfDoc = new PdfDocument(writer);
+        Document document = new Document(pdfDoc);
+
+        // Set document font, size, and styling
+        PdfFont font = PdfFontFactory.createFont(StandardFonts.HELVETICA);
+        document.setFont(font);
+        document.setFontSize(12);
+
+        Optional<ProductionPlan> existingPlan = productionPlanRepository.findById(id);
+        if (existingPlan.isPresent()) {
+            ProductionPlan plan = existingPlan.get();
+
+            // Add title in French
+            Paragraph title = new Paragraph("Détails du planning")
+                    .setFontSize(18)
+                    .setBold()
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginBottom(20);
+            document.add(title);
+
+            // Client info table with null checks and French labels
+            Table clientInfoTable = new Table(2);
+            clientInfoTable.setWidth(UnitValue.createPercentValue(100));
+
+
+            // Add a final note in French
+            Paragraph finalNote = new Paragraph("Ce document contient les informations détaillées du planning : " + plan.getIdPlanning())
+                    .setFontSize(10)
+                    .setItalic()
+                    .setTextAlignment(TextAlignment.CENTER)
+                    .setMarginTop(20);
+            document.add(finalNote);
+        } else {
+            document.add(new Paragraph("Order non trouvé").setFontSize(12).setBold());
+        }
+
+        document.close();
+
+        // Convert ByteArrayOutputStream to byte array
+        return byteArrayOutputStream.toByteArray();
+    }
+
+    private static LocalDateTime getDate(String date){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
+        // Parse the date using LocalDateTime and the formatter
+        LocalDateTime dateFormatted = LocalDateTime.parse(date.substring(0, 19), formatter);
+
+        return dateFormatted;
     }
 }

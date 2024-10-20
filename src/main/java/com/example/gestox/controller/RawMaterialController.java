@@ -1,13 +1,12 @@
 package com.example.gestox.controller;
 
-import com.example.gestox.dto.ClientResponseDTO;
 import com.example.gestox.dto.RawMaterialRequestDTO;
 import com.example.gestox.dto.RawMaterialResponseDTO;
 import com.example.gestox.service.RawMaterialService.RawMaterialService;
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.domain.Page;
-import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -16,25 +15,22 @@ import java.util.List;
 @RequestMapping("/api/raw-materials")
 public class RawMaterialController {
 
-    @Autowired
-    private  RawMaterialService rawMaterialService;
+    private final RawMaterialService rawMaterialService;
 
-
-    @GetMapping
-    public ResponseEntity<Page<RawMaterialResponseDTO>> getAllRawMaterials(Pageable pageable) {
-        Page<RawMaterialResponseDTO> rawMaterials = rawMaterialService.getAllRawMaterials(pageable);
-        return ResponseEntity.ok(rawMaterials);
+    public RawMaterialController(RawMaterialService rawMaterialService) {
+        this.rawMaterialService = rawMaterialService;
     }
 
     @PostMapping("/add")
-    public ResponseEntity<RawMaterialResponseDTO> createRawMaterial(@RequestBody RawMaterialRequestDTO rawMaterialRequestDTO) {
+    public ResponseEntity<RawMaterialResponseDTO> createRawMaterial(@RequestBody
+                                                                        RawMaterialRequestDTO rawMaterialRequestDTO) {
         RawMaterialResponseDTO rawMaterialResponse = rawMaterialService.createRawMaterial(rawMaterialRequestDTO);
         return ResponseEntity.ok(rawMaterialResponse);
     }
 
-    @PutMapping("/{id}")
-    public ResponseEntity<RawMaterialResponseDTO> updateRawMaterial(@RequestBody RawMaterialRequestDTO rawMaterialRequestDTO) {
-        RawMaterialResponseDTO updatedRawMaterial = rawMaterialService.updateRawMaterial(rawMaterialRequestDTO);
+    @PutMapping("/{idMaterial}")
+    public ResponseEntity<RawMaterialResponseDTO> updateRawMaterial( @RequestBody RawMaterialRequestDTO rawMaterialRequestDTO) {
+        RawMaterialResponseDTO updatedRawMaterial = rawMaterialService.updateRawMaterial( rawMaterialRequestDTO);
         return ResponseEntity.ok(updatedRawMaterial);
     }
 
@@ -50,10 +46,30 @@ public class RawMaterialController {
         return ResponseEntity.ok(rawMaterialResponse);
     }
 
-    @GetMapping("/showAll")
+    @GetMapping
     public ResponseEntity<List<RawMaterialResponseDTO>> getAllRawMaterials() {
         List<RawMaterialResponseDTO> rawMaterials = rawMaterialService.getAllRawMaterials();
         return ResponseEntity.ok(rawMaterials);
+    }
+
+    @GetMapping("/generate/{rawMaterialId}")
+    @PreAuthorize("hasRole('PRODUCTION')")
+    public ResponseEntity<byte[]> generatePdf(@PathVariable Long rawMaterialId) {
+        try {
+            byte[] pdfBytes  =rawMaterialService.generatePdf(rawMaterialId);
+
+            // Return the generated PDF as a response
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=ORDER_" + rawMaterialId + ".pdf");
+            headers.setContentType(MediaType.APPLICATION_PDF);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfBytes);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 }
 

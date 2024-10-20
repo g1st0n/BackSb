@@ -7,6 +7,7 @@ import com.example.gestox.dto.RawMaterialResponseDTO;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface RawMaterialService {
@@ -17,6 +18,8 @@ public interface RawMaterialService {
     List<RawMaterialResponseDTO> getAllRawMaterials();
     public Page<RawMaterialResponseDTO> getAllRawMaterials(Pageable pageable);
 
+
+    public byte[] generatePdf(Long id) throws IOException;
 
 }
 

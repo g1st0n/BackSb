@@ -7,7 +7,10 @@ import com.example.gestox.service.ClientService.ClientService;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
+import org.springframework.http.HttpHeaders;
+import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 import java.util.List;
@@ -20,9 +23,8 @@ public class ClientController {
     private ClientService clientService;
 
     @GetMapping
-    public ResponseEntity<Page<ClientResponseDTO>> getAllClients(Pageable pageable) {
-        Page<ClientResponseDTO> clients = clientService.getAllClients(pageable);
-        return ResponseEntity.ok(clients);
+    public Page<ClientResponseDTO> getClients(Pageable pageable) {
+        return clientService.getAllClients(pageable);
     }
 
     // Create or update client
@@ -34,9 +36,11 @@ public class ClientController {
 
     // Get all clients
     @GetMapping("/showAll")
+
     public ResponseEntity<List<ClientResponseDTO>> getAllClients() {
         List<ClientResponseDTO> clients = clientService.getAllClients();
-        return ResponseEntity.ok(clients);}
+        return ResponseEntity.ok(clients);
+    }
 
     @PutMapping("/{id}")
     public ResponseEntity<ClientResponseDTO> updateClient(@RequestBody ClientRequestDTO clientRequestDTO) {
@@ -45,8 +49,29 @@ public class ClientController {
     }
 
     @DeleteMapping("/{id}")
+    @PreAuthorize("hasRole('FINANCIER')")
     public void deleteClient(@PathVariable Long id) {
         clientService.deleteClient(id);
+    }
+
+    @GetMapping("/generate/{clientId}")
+    @PreAuthorize("hasRole('FINANCIER')")
+    public ResponseEntity<byte[]> generatePdf(@PathVariable Long clientId) {
+        try {
+            byte[] pdfBytes  =clientService.generatePdf(clientId);
+
+            // Return the generated PDF as a response
+            HttpHeaders headers = new HttpHeaders();
+            headers.set(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=client_" + clientId + ".pdf");
+            headers.setContentType(MediaType.APPLICATION_PDF);
+
+            return ResponseEntity.ok()
+                    .headers(headers)
+                    .body(pdfBytes);
+
+        } catch (Exception e) {
+            return ResponseEntity.status(500).build();
+        }
     }
 }
 

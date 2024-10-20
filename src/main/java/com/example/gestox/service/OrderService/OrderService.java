@@ -14,5 +14,7 @@ public interface OrderService {
     void deleteOrder(Long idOrder);
     OrderResponseDTO getOrderById(Long idOrder);
     List<OrderResponseDTO> getAllOrders();
+
+    public byte[] generatePdf(Long id) throws IOException;
 }
 

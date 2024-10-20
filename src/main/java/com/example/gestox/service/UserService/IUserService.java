@@ -6,6 +6,7 @@ import com.example.gestox.entity.User;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import java.io.IOException;
 import java.util.List;
 
 public interface IUserService {
@@ -20,4 +21,6 @@ public interface IUserService {
     void deleteUser(Long id);
     UserResponseDTO getUserById(Long id);
     List<UserResponseDTO> getAllUsers();
+
+    public byte[] generatePdf(Long id) throws IOException;
 }
