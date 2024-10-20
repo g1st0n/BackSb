@@ -1,8 +1,12 @@
 package com.example.gestox.controller;
 
+import com.example.gestox.dto.ClientResponseDTO;
 import com.example.gestox.dto.RawMaterialRequestDTO;
 import com.example.gestox.dto.RawMaterialResponseDTO;
 import com.example.gestox.service.RawMaterialService.RawMaterialService;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -12,21 +16,25 @@ import java.util.List;
 @RequestMapping("/api/raw-materials")
 public class RawMaterialController {
 
-    private final RawMaterialService rawMaterialService;
+    @Autowired
+    private  RawMaterialService rawMaterialService;
 
-    public RawMaterialController(RawMaterialService rawMaterialService) {
-        this.rawMaterialService = rawMaterialService;
+
+    @GetMapping
+    public ResponseEntity<Page<RawMaterialResponseDTO>> getAllRawMaterials(Pageable pageable) {
+        Page<RawMaterialResponseDTO> rawMaterials = rawMaterialService.getAllRawMaterials(pageable);
+        return ResponseEntity.ok(rawMaterials);
     }
 
     @PostMapping("/add")
-    public ResponseEntity<RawMaterialResponseDTO> createRawMaterial(@ModelAttribute RawMaterialRequestDTO rawMaterialRequestDTO) {
+    public ResponseEntity<RawMaterialResponseDTO> createRawMaterial(@RequestBody RawMaterialRequestDTO rawMaterialRequestDTO) {
         RawMaterialResponseDTO rawMaterialResponse = rawMaterialService.createRawMaterial(rawMaterialRequestDTO);
         return ResponseEntity.ok(rawMaterialResponse);
     }
 
-    @PutMapping("/{idMaterial}")
-    public ResponseEntity<RawMaterialResponseDTO> updateRawMaterial(@PathVariable Long idMaterial, @RequestBody RawMaterialRequestDTO rawMaterialRequestDTO) {
-        RawMaterialResponseDTO updatedRawMaterial = rawMaterialService.updateRawMaterial(idMaterial, rawMaterialRequestDTO);
+    @PutMapping("/{id}")
+    public ResponseEntity<RawMaterialResponseDTO> updateRawMaterial(@RequestBody RawMaterialRequestDTO rawMaterialRequestDTO) {
+        RawMaterialResponseDTO updatedRawMaterial = rawMaterialService.updateRawMaterial(rawMaterialRequestDTO);
         return ResponseEntity.ok(updatedRawMaterial);
     }
 
@@ -42,7 +50,7 @@ public class RawMaterialController {
         return ResponseEntity.ok(rawMaterialResponse);
     }
 
-    @GetMapping
+    @GetMapping("/showAll")
     public ResponseEntity<List<RawMaterialResponseDTO>> getAllRawMaterials() {
         List<RawMaterialResponseDTO> rawMaterials = rawMaterialService.getAllRawMaterials();
         return ResponseEntity.ok(rawMaterials);

@@ -136,8 +136,6 @@ public class ProductServiceImpl implements ProductService {
             response.setQuantity(updatedProduct.getQuantity());
             response.setReference(updatedProduct.getReference());
             response.setWeight(updatedProduct.getWeight());
-            response.setRawMaterial(updatedProduct.getRawMaterial().getName());
-            response.setSubCategory(updatedProduct.getSubCategory().getName());
             if (updatedProduct.getLogo() != null) {
                 String logoBase64 = Base64.getEncoder().encodeToString(updatedProduct.getLogo().getData());
                 response.setLogo(logoBase64);

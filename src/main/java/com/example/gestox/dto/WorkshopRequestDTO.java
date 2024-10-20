@@ -4,10 +4,10 @@ import lombok.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+
 public class WorkshopRequestDTO {
+    private Long idWorkshop;
+
     private Integer workshopNumber;
     private Long productionCapacity;
     private Integer machineCount;

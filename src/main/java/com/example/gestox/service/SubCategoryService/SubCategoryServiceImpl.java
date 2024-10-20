@@ -1,10 +1,15 @@
 package com.example.gestox.service.SubCategoryService;
 
 import com.example.gestox.dao.SubCategoryRepository;
+import com.example.gestox.dto.ClientResponseDTO;
 import com.example.gestox.dto.SubCategoryRequestDTO;
 import com.example.gestox.dto.SubCategoryResponseDTO;
+import com.example.gestox.entity.Client;
 import com.example.gestox.entity.SubCategory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,16 +30,30 @@ public class SubCategoryServiceImpl implements SubCategoryService {
     }
 
     @Override
-    public SubCategoryResponseDTO updateSubCategory(Long idSubCategory, SubCategoryRequestDTO subCategoryRequestDTO) {
-        SubCategory subCategory = subCategoryRepository.findById(idSubCategory)
-                .orElseThrow(() -> new RuntimeException("SubCategory not found with id: " + idSubCategory));
+    public SubCategoryResponseDTO updateSubCategory(SubCategoryRequestDTO subCategoryRequestDTO) {
+        Optional<SubCategory> subCategoryOptional = subCategoryRepository.findById(subCategoryRequestDTO.getIdSubCategory());
 
-        // Update subcategory details
-        subCategory.setName(subCategoryRequestDTO.getName());
-        subCategory.setReference(subCategoryRequestDTO.getReference());
+        if (subCategoryOptional.isPresent()) {
+            SubCategory subCategory = subCategoryOptional.get();
+            subCategory.setName(subCategoryRequestDTO.getName());
+            subCategory.setReference(subCategoryRequestDTO.getReference());
 
-        SubCategory updatedSubCategory = subCategoryRepository.save(subCategory);
-        return mapToResponseDTO(updatedSubCategory);
+
+            // If user ID is provided, update the associated user
+            //Optional<User> userOptional = userRepository.findById(clientRequestDTO.getUserId());
+            //userOptional.ifPresent(client::setUser);
+
+            subCategoryRepository.save(subCategory);
+
+            SubCategoryResponseDTO response = new SubCategoryResponseDTO();
+            response.setReference(subCategory.getReference());
+            response.setName(subCategory.getName());
+
+
+            return response;
+        } else {
+            throw new RuntimeException("Client not found with id " + subCategoryRequestDTO.getName());
+        }
     }
 
     @Override
@@ -60,6 +79,24 @@ public class SubCategoryServiceImpl implements SubCategoryService {
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
     }
+
+    @Override
+    public Page<SubCategoryResponseDTO> getAllSubCategories(Pageable pageable) {
+        Page<SubCategory> subCategories = subCategoryRepository.findAll(pageable);
+        List<SubCategoryResponseDTO> subCategoryResponseDTOS = subCategories.stream().map(subCategory -> {
+            SubCategoryResponseDTO responseDTO = new SubCategoryResponseDTO();
+            responseDTO.setIdSubCategory(subCategory.getIdSubCategory());
+            responseDTO.setName(subCategory.getName());
+            responseDTO.setReference(subCategory.getReference());
+
+
+            return responseDTO;
+        }).collect(Collectors.toList());
+
+        // Return a new PageImpl<ProductResponse> to preserve pagination info
+        return new PageImpl<>(subCategoryResponseDTOS, pageable, subCategories.getTotalElements());
+    }
+
 
     private SubCategory mapToEntity(SubCategoryRequestDTO subCategoryRequestDTO) {
         return SubCategory.builder()

@@ -9,6 +9,7 @@ import lombok.*;
 @Builder
 public class RawMaterialResponseDTO {
     private Long idMaterial;
+
     private String name;
     private String materialType;
     private String supplier;

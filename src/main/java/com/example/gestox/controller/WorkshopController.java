@@ -1,9 +1,13 @@
 package com.example.gestox.controller;
 
+import com.example.gestox.dto.ClientRequestDTO;
+import com.example.gestox.dto.ClientResponseDTO;
 import com.example.gestox.dto.WorkshopRequestDTO;
 import com.example.gestox.dto.WorkshopResponseDTO;
 import com.example.gestox.service.WorkshopService.WorkshopService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
@@ -17,16 +21,22 @@ public class WorkshopController {
     private WorkshopService workshopService;
 
 
+    @GetMapping
+    public ResponseEntity<Page<WorkshopResponseDTO>> getAllWorkshops(Pageable pageable) {
+        Page<WorkshopResponseDTO> workshops = workshopService.getAllWorkshops(pageable);
+        return ResponseEntity.ok(workshops);
+    }
+
     @PostMapping("/add")
     public ResponseEntity<WorkshopResponseDTO> createWorkshop(@RequestBody WorkshopRequestDTO workshopRequestDTO) {
         WorkshopResponseDTO workshopResponse = workshopService.createWorkshop(workshopRequestDTO);
         return ResponseEntity.ok(workshopResponse);
     }
 
-    @PutMapping("/{idWorkshop}")
-    public ResponseEntity<WorkshopResponseDTO> updateWorkshop(@PathVariable Long idWorkshop, @RequestBody WorkshopRequestDTO workshopRequestDTO) {
-        WorkshopResponseDTO updatedWorkshop = workshopService.updateWorkshop(idWorkshop, workshopRequestDTO);
-        return ResponseEntity.ok(updatedWorkshop);
+    @PutMapping("/{id}")
+    public ResponseEntity<WorkshopResponseDTO> updateClient(@RequestBody WorkshopRequestDTO workshopRequestDTO) {
+        WorkshopResponseDTO workshopResponseDTO = workshopService.updateWorkshop(workshopRequestDTO);
+        return ResponseEntity.ok(workshopResponseDTO);
     }
 
     @DeleteMapping("/{idWorkshop}")
@@ -41,7 +51,7 @@ public class WorkshopController {
         return ResponseEntity.ok(workshopResponse);
     }
 
-    @GetMapping
+    @GetMapping("/showAll")
     public ResponseEntity<List<WorkshopResponseDTO>> getAllWorkshops() {
         List<WorkshopResponseDTO> workshops = workshopService.getAllWorkshops();
         return ResponseEntity.ok(workshops);

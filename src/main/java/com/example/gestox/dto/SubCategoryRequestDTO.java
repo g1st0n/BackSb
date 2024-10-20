@@ -4,10 +4,9 @@ import lombok.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+
 public class SubCategoryRequestDTO {
+    private Long idSubCategory;
     private String name;
     private String reference;
 }

@@ -4,10 +4,9 @@ import lombok.*;
 
 @Getter
 @Setter
-@NoArgsConstructor
-@AllArgsConstructor
-@Builder
+
 public class RawMaterialRequestDTO {
+    private Long idMaterial;
     private String name;
     private String materialType;
     private String supplier;

@@ -1,10 +1,15 @@
 package com.example.gestox.service.RawMaterialService;
 
 import com.example.gestox.dao.RawMaterialRepository;
+import com.example.gestox.dto.ClientResponseDTO;
 import com.example.gestox.dto.RawMaterialRequestDTO;
 import com.example.gestox.dto.RawMaterialResponseDTO;
+import com.example.gestox.entity.Client;
 import com.example.gestox.entity.RawMaterial;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,31 +30,44 @@ public class RawMaterialServiceImpl implements RawMaterialService {
     }
 
     @Override
-    public RawMaterialResponseDTO updateRawMaterial(Long idMaterial, RawMaterialRequestDTO rawMaterialRequestDTO) {
-        RawMaterial rawMaterial = rawMaterialRepository.findById(idMaterial)
-                .orElseThrow(() -> new RuntimeException("Raw material not found with id: " + idMaterial));
+    public RawMaterialResponseDTO updateRawMaterial(RawMaterialRequestDTO rawMaterialRequestDTO) {
+        Optional<RawMaterial> rawMaterialOptional = rawMaterialRepository.findById(rawMaterialRequestDTO.getIdMaterial());
 
-        // Update raw material details
-        rawMaterial.setName(rawMaterialRequestDTO.getName());
-        rawMaterial.setMaterialType(rawMaterialRequestDTO.getMaterialType());
-        rawMaterial.setSupplier(rawMaterialRequestDTO.getSupplier());
-        rawMaterial.setAvailableQuantity(rawMaterialRequestDTO.getAvailableQuantity());
-        rawMaterial.setUnit(rawMaterialRequestDTO.getUnit());
-        rawMaterial.setColor(rawMaterialRequestDTO.getColor());
-        rawMaterial.setOrigin(rawMaterialRequestDTO.getOrigin());
-        rawMaterial.setUnitPrice(rawMaterialRequestDTO.getUnitPrice());
+        if (rawMaterialOptional.isPresent()) {
+            RawMaterial rawMaterial = rawMaterialOptional.get();
+            rawMaterial.setName(rawMaterialRequestDTO.getName());
+            rawMaterial.setMaterialType(rawMaterialRequestDTO.getMaterialType());
+            rawMaterial.setSupplier(rawMaterialRequestDTO.getSupplier());
+            rawMaterial.setAvailableQuantity(rawMaterialRequestDTO.getAvailableQuantity());
+            rawMaterial.setUnit(rawMaterialRequestDTO.getUnit());
+            rawMaterial.setColor(rawMaterialRequestDTO.getColor());
+            rawMaterial.setOrigin(rawMaterialRequestDTO.getOrigin());
+            rawMaterial.setUnitPrice(rawMaterialRequestDTO.getUnitPrice());
 
-        RawMaterial updatedRawMaterial = rawMaterialRepository.save(rawMaterial);
-        return mapToResponseDTO(updatedRawMaterial);
+
+            rawMaterialRepository.save(rawMaterial);
+
+            RawMaterialResponseDTO response = new RawMaterialResponseDTO() ;
+            response.setName(rawMaterial.getName());
+            response.setMaterialType(rawMaterial.getMaterialType());
+            response.setSupplier(rawMaterial.getSupplier());
+            response.setAvailableQuantity(rawMaterial.getAvailableQuantity());
+            response.setUnit(rawMaterial.getUnit());
+            response.setColor(rawMaterial.getColor());
+            response.setOrigin(rawMaterial.getOrigin());
+            response.setUnitPrice(rawMaterial.getUnitPrice());
+
+
+
+            return response ;
+        } else {
+            throw new RuntimeException("Client not found with id " + rawMaterialRequestDTO.getName());
+        }
     }
 
     @Override
     public void deleteRawMaterial(Long idMaterial) {
-        if (rawMaterialRepository.existsById(idMaterial)) {
-            rawMaterialRepository.deleteById(idMaterial);
-        } else {
-            throw new RuntimeException("Raw material not found with id: " + idMaterial);
-        }
+
     }
 
     @Override
@@ -65,6 +83,30 @@ public class RawMaterialServiceImpl implements RawMaterialService {
         return rawMaterials.stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<RawMaterialResponseDTO> getAllRawMaterials(Pageable pageable) {
+        Page<RawMaterial> rawMaterials = rawMaterialRepository.findAll(pageable);
+        List<RawMaterialResponseDTO> rawMaterialResponseDTOS = rawMaterials.stream().map(rawMaterial -> {
+            RawMaterialResponseDTO responseDTO = new RawMaterialResponseDTO();
+            responseDTO.setIdMaterial(rawMaterial.getIdMaterial());
+            responseDTO.setMaterialType(rawMaterial.getMaterialType());
+            responseDTO.setName(rawMaterial.getName());
+            responseDTO.setOrigin(rawMaterial.getOrigin());
+            responseDTO.setColor(rawMaterial.getColor());
+            responseDTO.setSupplier(rawMaterial.getSupplier());
+            responseDTO.setAvailableQuantity(rawMaterial.getAvailableQuantity());
+            responseDTO.setUnitPrice(rawMaterial.getUnitPrice());
+            responseDTO.setUnit(rawMaterial.getUnit());
+
+            //
+
+            return responseDTO;
+        }).collect(Collectors.toList());
+
+        // Return a new PageImpl<ProductResponse> to preserve pagination info
+        return new PageImpl<>(rawMaterialResponseDTOS, pageable, rawMaterials.getTotalElements());
     }
 
     private RawMaterial mapToEntity(RawMaterialRequestDTO rawMaterialRequestDTO) {

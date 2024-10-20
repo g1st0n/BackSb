@@ -1,10 +1,15 @@
 package com.example.gestox.service.WorkshopService;
 
 import com.example.gestox.dao.WorkshopRepository;
+import com.example.gestox.dto.ClientResponseDTO;
 import com.example.gestox.dto.WorkshopRequestDTO;
 import com.example.gestox.dto.WorkshopResponseDTO;
+import com.example.gestox.entity.Client;
 import com.example.gestox.entity.Workshop;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
 import java.util.List;
@@ -25,18 +30,35 @@ public class WorkshopServiceImpl implements WorkshopService {
     }
 
     @Override
-    public WorkshopResponseDTO updateWorkshop(Long idWorkshop, WorkshopRequestDTO workshopRequestDTO) {
-        Workshop workshop = workshopRepository.findById(idWorkshop)
-                .orElseThrow(() -> new RuntimeException("Workshop not found with id: " + idWorkshop));
+    public WorkshopResponseDTO updateWorkshop( WorkshopRequestDTO workshopRequestDTO) {
+        Optional<Workshop> workshopOptional = workshopRepository.findById(workshopRequestDTO.getIdWorkshop());
 
-        // Update workshop details
-        workshop.setWorkshopNumber(workshopRequestDTO.getWorkshopNumber());
-        workshop.setProductionCapacity(workshopRequestDTO.getProductionCapacity());
-        workshop.setMachineCount(workshopRequestDTO.getMachineCount());
-        workshop.setMachineCost(workshopRequestDTO.getMachineCost());
+        if (workshopOptional.isPresent()) {
+            Workshop workshop = workshopOptional.get();
+            workshop.setWorkshopNumber(workshopRequestDTO.getWorkshopNumber());
+            workshop.setMachineCost(workshopRequestDTO.getMachineCost());
+            workshop.setMachineCount(workshopRequestDTO.getMachineCount());
+            workshop.setProductionCapacity(workshopRequestDTO.getProductionCapacity());
 
-        Workshop updatedWorkshop = workshopRepository.save(workshop);
-        return mapToResponseDTO(updatedWorkshop);
+            // If user ID is provided, update the associated user
+            //Optional<User> userOptional = userRepository.findById(clientRequestDTO.getUserId());
+            //userOptional.ifPresent(client::setUser);
+
+            workshopRepository.save(workshop);
+
+            WorkshopResponseDTO response = new WorkshopResponseDTO() ;
+
+            response.setProductionCapacity(workshop.getProductionCapacity());
+            response.setWorkshopNumber(workshop.getWorkshopNumber());
+            response.setMachineCount(workshop.getMachineCount());
+            response.setMachineCost(workshop.getMachineCost());
+
+
+
+            return response ;
+        } else {
+            throw new RuntimeException("Workshop not found with id " + workshopRequestDTO.getWorkshopNumber());
+        }
     }
 
     @Override
@@ -61,6 +83,26 @@ public class WorkshopServiceImpl implements WorkshopService {
         return workshops.stream()
                 .map(this::mapToResponseDTO)
                 .collect(Collectors.toList());
+    }
+
+    @Override
+    public Page<WorkshopResponseDTO> getAllWorkshops(Pageable pageable) {
+        Page<Workshop> workshops = workshopRepository.findAll(pageable);
+        List<WorkshopResponseDTO> workshopResponseDTOS = workshops.stream().map(workshop -> {
+            WorkshopResponseDTO responseDTO = new WorkshopResponseDTO();
+            responseDTO.setIdWorkshop(workshop.getIdWorkshop());
+            responseDTO.setWorkshopNumber(workshop.getWorkshopNumber());
+            responseDTO.setMachineCost(workshop.getMachineCost());
+            responseDTO.setMachineCount(workshop.getMachineCount());
+            responseDTO.setProductionCapacity(workshop.getProductionCapacity());
+
+            //
+
+            return responseDTO;
+        }).collect(Collectors.toList());
+
+        // Return a new PageImpl<ProductResponse> to preserve pagination info
+        return new PageImpl<>(workshopResponseDTOS, pageable, workshops.getTotalElements());
     }
 
     private Workshop mapToEntity(WorkshopRequestDTO workshopRequestDTO) {

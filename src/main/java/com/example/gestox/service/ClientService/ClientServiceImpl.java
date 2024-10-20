@@ -73,6 +73,7 @@ public class ClientServiceImpl implements ClientService {
             response.setFullName(client.getFullName());
 
 
+
             return response ;
         } else {
             throw new RuntimeException("Client not found with id " + clientRequestDTO.getUserId());
@@ -110,11 +111,7 @@ public class ClientServiceImpl implements ClientService {
         responseDTO.setAddress(client.getAddress());
         responseDTO.setTelephone(client.getTelephone());
 
-        // Set user info
-        if (client.getUser() != null) {
-            responseDTO.setUserId(client.getUser().getId());
-            responseDTO.setUserFullName(client.getUser().getFirstName() + " " + client.getUser().getLastName());
-        }
+        // Set user inf}
 
         return responseDTO;
     }
@@ -131,7 +128,7 @@ public class ClientServiceImpl implements ClientService {
             responseDTO.setAddress(client.getAddress());
             responseDTO.setTelephone(client.getTelephone());
 
-            // Set user info
+            //
             if (client.getUser() != null) {
                 responseDTO.setUserId(client.getUser().getId());
                 responseDTO.setUserFullName(client.getUser().getFirstName() + " " + client.getUser().getLastName());

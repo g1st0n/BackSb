@@ -20,8 +20,9 @@ public class ClientController {
     private ClientService clientService;
 
     @GetMapping
-    public Page<ClientResponseDTO> getClients(Pageable pageable) {
-        return clientService.getAllClients(pageable);
+    public ResponseEntity<Page<ClientResponseDTO>> getAllClients(Pageable pageable) {
+        Page<ClientResponseDTO> clients = clientService.getAllClients(pageable);
+        return ResponseEntity.ok(clients);
     }
 
     // Create or update client
@@ -35,8 +36,7 @@ public class ClientController {
     @GetMapping("/showAll")
     public ResponseEntity<List<ClientResponseDTO>> getAllClients() {
         List<ClientResponseDTO> clients = clientService.getAllClients();
-        return ResponseEntity.ok(clients);
-    }
+        return ResponseEntity.ok(clients);}
 
     @PutMapping("/{id}")
     public ResponseEntity<ClientResponseDTO> updateClient(@RequestBody ClientRequestDTO clientRequestDTO) {
