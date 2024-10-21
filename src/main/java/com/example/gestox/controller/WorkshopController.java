@@ -28,6 +28,7 @@ public class WorkshopController {
     }
 
     @PostMapping("/add")
+
     public ResponseEntity<WorkshopResponseDTO> createWorkshop(@RequestBody WorkshopRequestDTO workshopRequestDTO) {
         WorkshopResponseDTO workshopResponse = workshopService.createWorkshop(workshopRequestDTO);
         return ResponseEntity.ok(workshopResponse);

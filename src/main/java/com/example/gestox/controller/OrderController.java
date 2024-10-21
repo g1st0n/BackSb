@@ -52,7 +52,6 @@ public class OrderController {
     }
 
     @GetMapping("/generate/{ORDERId}")
-    @PreAuthorize("hasRole('FINANCIER')")
     public ResponseEntity<byte[]> generatePdf(@PathVariable Long orderId) {
         try {
             byte[] pdfBytes  =orderService.generatePdf(orderId);
