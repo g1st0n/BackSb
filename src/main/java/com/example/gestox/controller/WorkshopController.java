@@ -1,9 +1,12 @@
 package com.example.gestox.controller;
 
+import com.example.gestox.dto.RawMaterialResponseDTO;
 import com.example.gestox.dto.WorkshopRequestDTO;
 import com.example.gestox.dto.WorkshopResponseDTO;
 import com.example.gestox.service.WorkshopService.WorkshopService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -19,6 +22,10 @@ public class WorkshopController {
     @Autowired
     private WorkshopService workshopService;
 
+    @GetMapping
+    public Page<WorkshopResponseDTO> getAllWorkshops(Pageable pageable) {
+        return workshopService.getAllWorkshops(pageable);
+    }
 
     @PostMapping("/add")
     public ResponseEntity<WorkshopResponseDTO> createWorkshop(@RequestBody WorkshopRequestDTO workshopRequestDTO) {
@@ -27,8 +34,8 @@ public class WorkshopController {
     }
 
     @PutMapping("/{idWorkshop}")
-    public ResponseEntity<WorkshopResponseDTO> updateWorkshop(@PathVariable Long idWorkshop, @RequestBody WorkshopRequestDTO workshopRequestDTO) {
-        WorkshopResponseDTO updatedWorkshop = workshopService.updateWorkshop(idWorkshop, workshopRequestDTO);
+    public ResponseEntity<WorkshopResponseDTO> updateWorkshop(@RequestBody WorkshopRequestDTO workshopRequestDTO) {
+        WorkshopResponseDTO updatedWorkshop = workshopService.updateWorkshop( workshopRequestDTO);
         return ResponseEntity.ok(updatedWorkshop);
     }
 
@@ -44,14 +51,13 @@ public class WorkshopController {
         return ResponseEntity.ok(workshopResponse);
     }
 
-    @GetMapping
+    @GetMapping("showAll")
     public ResponseEntity<List<WorkshopResponseDTO>> getAllWorkshops() {
         List<WorkshopResponseDTO> workshops = workshopService.getAllWorkshops();
         return ResponseEntity.ok(workshops);
     }
 
     @GetMapping("/generate/{workshopId}")
-    @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<byte[]> generatePdf(@PathVariable Long workshopId) {
         try {
             byte[] pdfBytes  =workshopService.generatePdf(workshopId);

@@ -1,8 +1,11 @@
 package com.example.gestox.controller;
 
+import com.example.gestox.dto.ClientResponseDTO;
 import com.example.gestox.dto.RawMaterialRequestDTO;
 import com.example.gestox.dto.RawMaterialResponseDTO;
 import com.example.gestox.service.RawMaterialService.RawMaterialService;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -21,6 +24,10 @@ public class RawMaterialController {
         this.rawMaterialService = rawMaterialService;
     }
 
+    @GetMapping
+    public Page<RawMaterialResponseDTO> getAllRawMaterials(Pageable pageable) {
+        return rawMaterialService.getAllRawMaterials(pageable);
+    }
     @PostMapping("/add")
     public ResponseEntity<RawMaterialResponseDTO> createRawMaterial(@RequestBody
                                                                         RawMaterialRequestDTO rawMaterialRequestDTO) {
@@ -29,7 +36,7 @@ public class RawMaterialController {
     }
 
     @PutMapping("/{idMaterial}")
-    public ResponseEntity<RawMaterialResponseDTO> updateRawMaterial( @RequestBody RawMaterialRequestDTO rawMaterialRequestDTO) {
+    public ResponseEntity<RawMaterialResponseDTO> updateRawMaterial(@RequestBody RawMaterialRequestDTO rawMaterialRequestDTO) {
         RawMaterialResponseDTO updatedRawMaterial = rawMaterialService.updateRawMaterial( rawMaterialRequestDTO);
         return ResponseEntity.ok(updatedRawMaterial);
     }
@@ -46,7 +53,7 @@ public class RawMaterialController {
         return ResponseEntity.ok(rawMaterialResponse);
     }
 
-    @GetMapping
+    @GetMapping("showAll")
     public ResponseEntity<List<RawMaterialResponseDTO>> getAllRawMaterials() {
         List<RawMaterialResponseDTO> rawMaterials = rawMaterialService.getAllRawMaterials();
         return ResponseEntity.ok(rawMaterials);
