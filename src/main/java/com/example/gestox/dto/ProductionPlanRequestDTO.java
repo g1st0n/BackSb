@@ -11,8 +11,10 @@ import java.util.Date;
 @AllArgsConstructor
 @Builder
 public class ProductionPlanRequestDTO {
+    private Long planningId ;
     private String date;
     private Integer quantity;
+    private Integer waste;
     private String duration;
     private Long productId;  // Reference to Product entity
     private Long workshopId; // Reference to Workshop entity

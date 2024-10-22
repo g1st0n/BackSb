@@ -20,15 +20,20 @@ public class ProductionPlanController {
     private ProductionPlanService productionPlanService;
 
     @PostMapping("/add")
-    @PreAuthorize("hasRole('PRODUCTION')")
     public ResponseEntity<ProductionPlanResponseDTO> createProductionPlan(@RequestBody ProductionPlanRequestDTO productionPlanRequestDTO) {
         ProductionPlanResponseDTO productionPlanResponse = productionPlanService.createProductionPlan(productionPlanRequestDTO);
         return ResponseEntity.ok(productionPlanResponse);
     }
 
     @PutMapping("/{idPlanning}")
-    public ResponseEntity<ProductionPlanResponseDTO> updateProductionPlan(@PathVariable Long idPlanning, @RequestBody ProductionPlanRequestDTO productionPlanRequestDTO) {
-        ProductionPlanResponseDTO updatedProductionPlan = productionPlanService.updateProductionPlan(idPlanning, productionPlanRequestDTO);
+    public ResponseEntity<ProductionPlanResponseDTO> updateProductionPlan(@RequestBody ProductionPlanRequestDTO productionPlanRequestDTO) {
+        ProductionPlanResponseDTO updatedProductionPlan = productionPlanService.updateProductionPlan(productionPlanRequestDTO.getPlanningId(), productionPlanRequestDTO);
+        return ResponseEntity.ok(updatedProductionPlan);
+    }
+
+    @PutMapping("/confirm/{idPlanning}")
+    public ResponseEntity<ProductionPlanResponseDTO> confirmProductionPlan(@RequestBody ProductionPlanRequestDTO productionPlanRequestDTO) {
+        ProductionPlanResponseDTO updatedProductionPlan = productionPlanService.confirmProductionPlan(productionPlanRequestDTO.getPlanningId(), productionPlanRequestDTO);
         return ResponseEntity.ok(updatedProductionPlan);
     }
 
@@ -51,7 +56,6 @@ public class ProductionPlanController {
     }
 
     @GetMapping("/generate/{productionPlanId}")
-    @PreAuthorize("hasRole('PRODUCTION')")
     public ResponseEntity<byte[]> generatePdf(@PathVariable Long productionPlanId) {
         try {
             byte[] pdfBytes  =productionPlanService.generatePdf(productionPlanId);

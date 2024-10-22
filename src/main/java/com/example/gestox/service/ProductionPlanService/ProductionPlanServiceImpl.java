@@ -5,10 +5,7 @@ import com.example.gestox.dao.ProductionPlanRepository;
 import com.example.gestox.dao.WorkshopRepository;
 import com.example.gestox.dto.ProductionPlanRequestDTO;
 import com.example.gestox.dto.ProductionPlanResponseDTO;
-import com.example.gestox.entity.CustomerOrder;
-import com.example.gestox.entity.Product;
-import com.example.gestox.entity.ProductionPlan;
-import com.example.gestox.entity.Workshop;
+import com.example.gestox.entity.*;
 import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.kernel.font.PdfFont;
 import com.itextpdf.kernel.font.PdfFontFactory;
@@ -27,6 +24,7 @@ import java.io.IOException;
 import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.format.DateTimeFormatter;
+import java.util.Base64;
 import java.util.List;
 import java.util.Locale;
 import java.util.Optional;
@@ -81,6 +79,18 @@ public class ProductionPlanServiceImpl implements ProductionPlanService {
     }
 
     @Override
+    public ProductionPlanResponseDTO confirmProductionPlan(Long idPlanning, ProductionPlanRequestDTO productionPlanRequestDTO) {
+        ProductionPlan productionPlan = productionPlanRepository.findById(idPlanning)
+                .orElseThrow(() -> new RuntimeException("ProductionPlan not found with id: " + idPlanning));
+
+        // Update production plan details
+        productionPlan.setWaste(productionPlanRequestDTO.getWaste()!=null?productionPlanRequestDTO.getWaste() : 0);
+
+        ProductionPlan updatedProductionPlan = productionPlanRepository.save(productionPlan);
+        return mapToResponseDTO(updatedProductionPlan);
+    }
+
+    @Override
     public void deleteProductionPlan(Long idPlanning) {
         if (productionPlanRepository.existsById(idPlanning)) {
             productionPlanRepository.deleteById(idPlanning);
@@ -119,16 +129,33 @@ public class ProductionPlanServiceImpl implements ProductionPlanService {
     }
 
     private ProductionPlanResponseDTO mapToResponseDTO(ProductionPlan productionPlan) {
+        String status = "EN_COURS";
+        if(productionPlan.getWaste()!=null && productionPlan.getWaste()>0){
+            status = "TERMINE" ;
+        } else if (LocalDateTime.now().compareTo(productionPlan.getDate().plusHours(productionPlan.getDuration().getHour()))>0) {
+            status = "TERMINE" ;
+        }
+        FileStorage logo =null ;
+        String logoBase64 =null;
+
+        if (productionPlan.getProduct().getLogo() != null) {
+            logo  = productionPlan.getProduct().getLogo() ;
+            logoBase64 = Base64.getEncoder().encodeToString(logo.getData());
+        }
         return ProductionPlanResponseDTO.builder()
                 .idPlanning(productionPlan.getIdPlanning())
                 .date(productionPlan.getDate().toString())
                 .quantity(productionPlan.getQuantity())
+                .waste(productionPlan.getWaste())
                 .duration(productionPlan.getDuration().toString())
                 .productId(productionPlan.getProduct().getIdProduct())
                 .workshopId(productionPlan.getWorkshop().getIdWorkshop())
                 .workforce(productionPlan.getWorkforce())
                 .comment(productionPlan.getComment())
-                .status((LocalDateTime.now().compareTo(productionPlan.getDate().plusHours(productionPlan.getDuration().getHour()))>0? "TERMINE" : "EN_COURS"))
+                .status(status)
+                .logo(logoBase64!=null?logoBase64:"")
+                .logoName(logo != null ?logo.getFileName() : null)
+                .logoType(logo!= null? logo.getFileType(): null)
                 .build();
     }
 

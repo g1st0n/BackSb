@@ -10,6 +10,8 @@ import java.util.List;
 public interface ProductionPlanService {
     ProductionPlanResponseDTO createProductionPlan(ProductionPlanRequestDTO productionPlanRequestDTO);
     ProductionPlanResponseDTO updateProductionPlan(Long idPlanning, ProductionPlanRequestDTO productionPlanRequestDTO);
+
+    ProductionPlanResponseDTO confirmProductionPlan(Long idPlanning, ProductionPlanRequestDTO productionPlanRequestDTO);
     void deleteProductionPlan(Long idPlanning);
     ProductionPlanResponseDTO getProductionPlanById(Long idPlanning);
     List<ProductionPlanResponseDTO> getAllProductionPlans();

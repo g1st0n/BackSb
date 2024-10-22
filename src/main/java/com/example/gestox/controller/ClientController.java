@@ -48,13 +48,11 @@ public class ClientController {
     }
 
     @DeleteMapping("/{id}")
-    @PreAuthorize("hasRole('FINANCIER')")
     public void deleteClient(@PathVariable Long id) {
         clientService.deleteClient(id);
     }
 
     @GetMapping("/generate/{clientId}")
-    @PreAuthorize("hasRole('FINANCIER')")
     public ResponseEntity<byte[]> generatePdf(@PathVariable Long clientId) {
         try {
             byte[] pdfBytes  =clientService.generatePdf(clientId);

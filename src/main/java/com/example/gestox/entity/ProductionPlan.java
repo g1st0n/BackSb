@@ -22,6 +22,8 @@ public class ProductionPlan {
     private Integer quantity;
     private LocalTime duration;
 
+    private Integer waste;
+
     @ManyToOne
     @JoinColumn(name = "idProduct")
     private Product product;
