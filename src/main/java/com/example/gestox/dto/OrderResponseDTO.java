@@ -12,9 +12,9 @@ import java.util.Date;
 public class OrderResponseDTO {
 
     private Long idOrder;
-    private Long clientId;  // Reference to Client entity
-    private Long productId; // Reference to Product entity
-    private Date date;
+    private String clientName;  // Reference to Client entity
+    private String productName; // Reference to Product entity
+    private String date;
     private Integer quantity;
 }
 

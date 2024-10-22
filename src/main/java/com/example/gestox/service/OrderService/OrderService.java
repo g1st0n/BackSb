@@ -1,8 +1,11 @@
 package com.example.gestox.service.OrderService;
 
+import com.example.gestox.dto.ClientResponseDTO;
 import com.example.gestox.dto.OrderRequestDTO;
 import com.example.gestox.dto.OrderResponseDTO;
 import com.example.gestox.entity.CustomerOrder;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 import javax.mail.MessagingException;
 import java.io.IOException;
@@ -16,5 +19,7 @@ public interface OrderService {
     List<OrderResponseDTO> getAllOrders();
 
     public byte[] generatePdf(Long id) throws IOException;
+
+    public Page<OrderResponseDTO> getAllOrders(Pageable pageable);
 }
 

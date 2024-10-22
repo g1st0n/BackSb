@@ -4,14 +4,8 @@ package com.example.gestox.service.UserService;
 import com.example.gestox.dao.ConfirmationTokenRepository;
 import com.example.gestox.dao.FileStorageRepository;
 import com.example.gestox.dao.UserRepository;
-import com.example.gestox.dto.ChangePasswordRequest;
-import com.example.gestox.dto.UserRegistrationDto;
-import com.example.gestox.dto.UserRequestDTO;
-import com.example.gestox.dto.UserResponseDTO;
-import com.example.gestox.entity.ConfirmationToken;
-import com.example.gestox.entity.FileStorage;
-import com.example.gestox.entity.SubCategory;
-import com.example.gestox.entity.User;
+import com.example.gestox.dto.*;
+import com.example.gestox.entity.*;
 import com.example.gestox.service.EmailService.EmailService;
 import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.kernel.font.PdfFont;
@@ -27,6 +21,9 @@ import lombok.AllArgsConstructor;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.GrantedAuthority;
@@ -46,6 +43,7 @@ import java.util.*;
 import java.util.stream.Collectors;
 
 @Service
+@Transactional
 @AllArgsConstructor
 public class UserServiceImpl implements IUserService, UserDetailsService {
 
@@ -225,11 +223,21 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
     }
 
     @Override
-    public UserResponseDTO createUser(UserRequestDTO userRequestDTO) {
+    public UserResponseDTO createUser(UserRequestDTO userRequestDTO) throws IOException {
         FileStorage profileImage = null;
-        if (userRequestDTO.getProfileImageId() != null) {
-            profileImage = fileStorageRepository.findById(userRequestDTO.getProfileImageId())
-                    .orElseThrow(() -> new RuntimeException("Profile image not found with id: " + userRequestDTO.getProfileImageId()));
+        if(userRequestDTO.getImage() !=null){
+            if(fileStorageRepository.existsByFileNameAndFileType(userRequestDTO.getImage().getOriginalFilename(),
+                    userRequestDTO.getImage().getContentType())){
+                profileImage = fileStorageRepository.findByFileNameAndFileType(userRequestDTO.getImage().getOriginalFilename(),
+                        userRequestDTO.getImage().getContentType());
+            } else {
+                profileImage = new FileStorage();
+                profileImage.setFileName(userRequestDTO.getImage().getOriginalFilename());
+                profileImage.setFileType(userRequestDTO.getImage().getContentType());
+                profileImage.setData(userRequestDTO.getImage().getBytes());
+                profileImage.setCreationDate(LocalDateTime.now());
+                fileStorageRepository.save(profileImage);
+            }
         }
 
         User user = mapToEntity(userRequestDTO, profileImage);
@@ -238,14 +246,27 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
     }
 
     @Override
-    public UserResponseDTO updateUser(Long id, UserRequestDTO userRequestDTO) {
+    public UserResponseDTO updateUser(Long id, UserRequestDTO userRequestDTO) throws IOException {
         User user = userRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("User not found with id: " + id));
 
         FileStorage profileImage = null;
-        if (userRequestDTO.getProfileImageId() != null) {
-            profileImage = fileStorageRepository.findById(userRequestDTO.getProfileImageId())
-                    .orElseThrow(() -> new RuntimeException("Profile image not found with id: " + userRequestDTO.getProfileImageId()));
+        if(userRequestDTO.getImage() !=null){
+            if(fileStorageRepository.existsByFileNameAndFileType(userRequestDTO.getImage().getOriginalFilename(),
+                    userRequestDTO.getImage().getContentType())){
+                profileImage = fileStorageRepository.findByFileNameAndFileType(userRequestDTO.getImage().getOriginalFilename(),
+                        userRequestDTO.getImage().getContentType());
+                user.setProfileImage(profileImage);
+            } else {
+                profileImage = new FileStorage();
+                profileImage.setFileName(userRequestDTO.getImage().getOriginalFilename());
+                profileImage.setFileType(userRequestDTO.getImage().getContentType());
+                profileImage.setData(userRequestDTO.getImage().getBytes());
+                profileImage.setCreationDate(LocalDateTime.now());
+                fileStorageRepository.save(profileImage);
+                user.setProfileImage(profileImage);
+            }
+            user.setProfileImage(profileImage);
         }
 
         user.setFirstName(userRequestDTO.getFirstName());
@@ -293,17 +314,22 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
                 .lastName(userRequestDTO.getLastName())
                 .address(userRequestDTO.getAddress())
                 .phoneNumber(userRequestDTO.getPhoneNumber())
-                .password(userRequestDTO.getPassword())
+                .password(passwordEncoder.encode(userRequestDTO.getPassword()))
                 .role(userRequestDTO.getRole())
                 .status(userRequestDTO.getStatus())
                 .lastAccess(userRequestDTO.getLastAccess())
-                .enabled(userRequestDTO.isEnabled())
+                .enabled(true)
                 .profileImage(profileImage)
                 .build();
     }
 
     private UserResponseDTO mapToResponseDTO(User user) {
         String profileImageUrl = user.getProfileImage() != null ? "/api/files/" + user.getProfileImage().getId() : null;
+
+        String logoBase64 ="";
+        if (user.getProfileImage() != null) {
+            logoBase64 = Base64.getEncoder().encodeToString(user.getProfileImage().getData());
+        }
 
         return UserResponseDTO.builder()
                 .id(user.getId())
@@ -313,10 +339,24 @@ public class UserServiceImpl implements IUserService, UserDetailsService {
                 .phoneNumber(user.getPhoneNumber())
                 .role(user.getRole())
                 .status(user.getStatus())
+                .phoneNumber(user.getPhoneNumber())
                 .lastAccess(user.getLastAccess())
                 .enabled(user.isEnabled())
-                .profileImageUrl(profileImageUrl)
+                .logo(logoBase64)
+                .logoName(user.getProfileImage().getFileName())
+                .logoName(user.getProfileImage().getFileName())
                 .build();
+    }
+
+    @Override
+    public Page<UserResponseDTO> getUsers(Pageable pageable) {
+        Page<User> users = userRepository.findAll(pageable);
+        List<UserResponseDTO> responseDTOs = users.stream().map(user -> {
+            UserResponseDTO responseDTO = mapToResponseDTO(user);
+            return responseDTO;
+        }).collect(Collectors.toList());
+
+        return new PageImpl<>(responseDTOs, pageable, users.getTotalElements());
     }
 
     @Override

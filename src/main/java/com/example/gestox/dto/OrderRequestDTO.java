@@ -13,7 +13,7 @@ public class OrderRequestDTO {
 
     private Long clientId;  // Reference to Client entity
     private Long productId; // Reference to Product entity
-    private Date date;
+    private String date;
     private Integer quantity;
 }
 

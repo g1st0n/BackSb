@@ -36,7 +36,6 @@ public class ClientController {
 
     // Get all clients
     @GetMapping("/showAll")
-
     public ResponseEntity<List<ClientResponseDTO>> getAllClients() {
         List<ClientResponseDTO> clients = clientService.getAllClients();
         return ResponseEntity.ok(clients);

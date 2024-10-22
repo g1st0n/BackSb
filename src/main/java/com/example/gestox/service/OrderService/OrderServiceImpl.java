@@ -4,6 +4,7 @@ import com.example.gestox.dao.ClientRepository;
 import com.example.gestox.dao.OrderRepository;
 import com.example.gestox.dao.ProductRepository;
 import com.example.gestox.dao.UserRepository;
+import com.example.gestox.dto.ClientResponseDTO;
 import com.example.gestox.dto.OrderRequestDTO;
 import com.example.gestox.dto.OrderResponseDTO;
 import com.example.gestox.entity.Client;
@@ -23,6 +24,9 @@ import com.itextpdf.layout.element.Table;
 import com.itextpdf.layout.property.TextAlignment;
 import com.itextpdf.layout.property.UnitValue;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageImpl;
+import org.springframework.data.domain.Pageable;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Service;
@@ -30,6 +34,9 @@ import org.springframework.stereotype.Service;
 import javax.mail.MessagingException;
 import java.io.ByteArrayOutputStream;
 import java.io.IOException;
+import java.time.LocalDateTime;
+import java.time.LocalTime;
+import java.time.format.DateTimeFormatter;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -82,7 +89,7 @@ public class OrderServiceImpl implements OrderService {
 
         order.setClient(client);
         order.setProduct(product);
-        order.setDate(orderRequestDTO.getDate());
+        order.setDate(getDate(orderRequestDTO.getDate()));
         order.setQuantity(orderRequestDTO.getQuantity());
 
         CustomerOrder updatedOrder = orderRepository.save(order);
@@ -117,19 +124,39 @@ public class OrderServiceImpl implements OrderService {
         return CustomerOrder.builder()
                 .client(client)
                 .product(product)
-                .date(orderRequestDTO.getDate())
+                .date(getDate(orderRequestDTO.getDate()))
                 .quantity(orderRequestDTO.getQuantity())
                 .build();
+    }
+
+    private static LocalDateTime getDate(String date){
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd'T'HH:mm:ss");
+
+        // Parse the date using LocalDateTime and the formatter
+        LocalDateTime dateFormatted = LocalDateTime.parse(date.substring(0, 19), formatter);
+
+        return dateFormatted;
     }
 
     private OrderResponseDTO mapToResponseDTO(CustomerOrder order) {
         return OrderResponseDTO.builder()
                 .idOrder(order.getIdOrder())
-                .clientId(order.getClient().getIdClient())
-                .productId(order.getProduct().getIdProduct())
-                .date(order.getDate())
+                .clientName(order.getClient().getFullName())
+                .productName(order.getProduct().getReference())
+                .date(order.getDate().toString())
                 .quantity(order.getQuantity())
                 .build();
+    }
+
+    @Override
+    public Page<OrderResponseDTO> getAllOrders(Pageable pageable) {
+        Page<CustomerOrder> orders = orderRepository.findAll(pageable);
+        List<OrderResponseDTO> responseDTOs = orders.stream().map(order -> {
+            OrderResponseDTO responseDTO = mapToResponseDTO(order);
+            return responseDTO;
+        }).collect(Collectors.toList());
+
+        return new PageImpl<>(responseDTOs, pageable, orders.getTotalElements());
     }
 
     @Override

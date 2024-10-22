@@ -20,6 +20,8 @@ public class UserResponseDTO {
     private String status;
     private Date lastAccess;
     private boolean enabled;
-    private String profileImageUrl;  // URL of the profile image (from FileStorage)
+    private String logo;
+    private String logoName;
+    private String logoType;
 }
 

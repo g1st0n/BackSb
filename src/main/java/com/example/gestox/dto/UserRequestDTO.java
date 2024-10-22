@@ -1,6 +1,7 @@
 package com.example.gestox.dto;
 
 import lombok.*;
+import org.springframework.web.multipart.MultipartFile;
 
 import java.util.Date;
 
@@ -20,6 +21,6 @@ public class UserRequestDTO {
     private String status;
     private Date lastAccess;
     private boolean enabled;
-    private Long profileImageId; // Reference to FileStorage entity for the profile image
+    private MultipartFile image;
 }
 

@@ -1,15 +1,19 @@
 package com.example.gestox.controller;
 
+import com.example.gestox.dto.OrderResponseDTO;
 import com.example.gestox.dto.UserRequestDTO;
 import com.example.gestox.dto.UserResponseDTO;
 import com.example.gestox.service.UserService.IUserService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.io.IOException;
 import java.util.List;
 
 @RestController
@@ -20,13 +24,13 @@ public class UserController {
     private IUserService userService;
 
     @PostMapping("/add")
-    public ResponseEntity<UserResponseDTO> createUser(@RequestBody UserRequestDTO userRequestDTO) {
+    public ResponseEntity<UserResponseDTO> createUser(@ModelAttribute UserRequestDTO userRequestDTO) throws IOException {
         UserResponseDTO userResponse = userService.createUser(userRequestDTO);
         return ResponseEntity.ok(userResponse);
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @RequestBody UserRequestDTO userRequestDTO) {
+    public ResponseEntity<UserResponseDTO> updateUser(@PathVariable Long id, @ModelAttribute UserRequestDTO userRequestDTO) throws IOException {
         UserResponseDTO updatedUser = userService.updateUser(id, userRequestDTO);
         return ResponseEntity.ok(updatedUser);
     }
@@ -44,10 +48,16 @@ public class UserController {
     }
 
     @GetMapping
+    public Page<UserResponseDTO> getUsers(Pageable pageable) {
+        return userService.getUsers(pageable);
+    }
+
+    @GetMapping("/showAll")
     public ResponseEntity<List<UserResponseDTO>> getAllUsers() {
         List<UserResponseDTO> users = userService.getAllUsers();
         return ResponseEntity.ok(users);
     }
+
 
     @GetMapping("/generate/{userId}")
     @PreAuthorize("hasRole('ADMIN')")

@@ -1,9 +1,12 @@
 package com.example.gestox.controller;
 
+import com.example.gestox.dto.ClientResponseDTO;
 import com.example.gestox.dto.OrderRequestDTO;
 import com.example.gestox.dto.OrderResponseDTO;
 import com.example.gestox.service.OrderService.OrderService;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
@@ -45,10 +48,15 @@ public class OrderController {
         return ResponseEntity.ok(orderResponse);
     }
 
-    @GetMapping
+    @GetMapping("/showAll")
     public ResponseEntity<List<OrderResponseDTO>> getAllOrders() {
         List<OrderResponseDTO> orders = orderService.getAllOrders();
         return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping
+    public Page<OrderResponseDTO> getOrders(Pageable pageable) {
+        return orderService.getAllOrders(pageable);
     }
 
     @GetMapping("/generate/{ORDERId}")

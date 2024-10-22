@@ -7,6 +7,7 @@ import lombok.Data;
 import lombok.NoArgsConstructor;
 import jakarta.persistence.*;
 
+import java.time.LocalDateTime;
 import java.util.Date;
 
 @Data
@@ -27,7 +28,7 @@ public class CustomerOrder {
     @JoinColumn(name = "idProduct")
     private Product product;
 
-    private Date date;
+    private LocalDateTime date;
     private Integer quantity;
 
     // Getters and Setters
