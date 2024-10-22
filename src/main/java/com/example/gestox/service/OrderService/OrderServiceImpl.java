@@ -7,10 +7,7 @@ import com.example.gestox.dao.UserRepository;
 import com.example.gestox.dto.ClientResponseDTO;
 import com.example.gestox.dto.OrderRequestDTO;
 import com.example.gestox.dto.OrderResponseDTO;
-import com.example.gestox.entity.Client;
-import com.example.gestox.entity.CustomerOrder;
-import com.example.gestox.entity.Product;
-import com.example.gestox.entity.User;
+import com.example.gestox.entity.*;
 import com.example.gestox.service.EmailService.EmailService;
 import com.itextpdf.io.font.constants.StandardFonts;
 import com.itextpdf.kernel.font.PdfFont;
@@ -68,11 +65,20 @@ public class OrderServiceImpl implements OrderService {
 
         User loggedUser = userRepository.findByFirstName(userDetails.getUsername())
                 .orElseThrow(() -> new RuntimeException("No user is logged"));
-        emailService.sendEmail(loggedUser.getAddress(),client.getEmail(),"Order of " + product.getReference(),"Order received",null);
         //emailService.sendEmail(from,to,sub,body,file);
 
         CustomerOrder order = mapToEntity(orderRequestDTO, client, product);
         CustomerOrder savedOrder = orderRepository.save(order);
+
+        byte[] reportData = generatePdf(savedOrder.getIdOrder());
+        FileStorage reportPdf = new FileStorage();
+        reportPdf.setFileName(product.getReference() + ".pdf");
+        reportPdf.setCreationDate(LocalDateTime.now());
+        reportPdf.setData(reportData);
+        reportPdf.setFileType("application/pdf");
+        emailService.sendEmail(loggedUser.getAddress(),client.getEmail(),"Commande : " + product.getReference(),"Bonjour \n" +
+                "Commande reçu \n" +
+                "Cordialement",reportPdf);
         return mapToResponseDTO(savedOrder);
     }
 
@@ -187,6 +193,25 @@ public class OrderServiceImpl implements OrderService {
             Table clientInfoTable = new Table(2);
             clientInfoTable.setWidth(UnitValue.createPercentValue(100));
 
+            clientInfoTable.addCell(new Cell().add(new Paragraph("Date de la commande :")));
+            clientInfoTable.addCell(new Cell().add(new Paragraph(order.getDate() != null ? order.getDate().toString() : "Non renseigné")));
+
+            clientInfoTable.addCell(new Cell().add(new Paragraph("Quantité :")));
+            clientInfoTable.addCell(new Cell().add(new Paragraph(order.getQuantity() != null ? order.getQuantity().toString() : "Non renseigné")));
+
+            clientInfoTable.addCell(new Cell().add(new Paragraph("Cllient :")));
+            clientInfoTable.addCell(new Cell().add(new Paragraph(order.getClient() != null ? order.getClient().getFullName() : "Non disponible")));
+
+            clientInfoTable.addCell(new Cell().add(new Paragraph("Numéro du cllient :")));
+            clientInfoTable.addCell(new Cell().add(new Paragraph(order.getClient() != null ? order.getClient().getTelephone() : "Non disponible")));
+
+            clientInfoTable.addCell(new Cell().add(new Paragraph("Addresse du cllient :")));
+            clientInfoTable.addCell(new Cell().add(new Paragraph(order.getClient() != null ? order.getClient().getAddress() : "Non disponible")));
+
+            clientInfoTable.addCell(new Cell().add(new Paragraph("Produit :")));
+            clientInfoTable.addCell(new Cell().add(new Paragraph(order.getProduct() != null ? order.getProduct().getReference() : "Non renseigné")));
+
+            document.add(clientInfoTable);
 
             // Add a final note in French
             Paragraph finalNote = new Paragraph("Ce document contient les informations détaillées de l'order : " + order.getIdOrder())
